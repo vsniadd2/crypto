@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/main.css">
+    <title>Crypto analitics</title>
+</head>
+<body class="container">
+<div class="nav">
+    <img src="/img/LOGO.svg" class="logo">
+    <div class="page_buttons_block">
+        <a href="http://localhost:8080/" class="page_button">Cryptocurrencies</a>
+        <button class="page_button">News</button>
+        <button class="page_button">Crypto bot</button>
+    </div>
+    <div class="nav_search_block">
+        <img src="/img/search.svg" class="search">
+        <input type="text" class="input_search" placeholder="Search">
+        <img src="/img/backslash.svg" class="backslash">
+    </div>
+    <div class="auth-section">
+        <button class="registration_button" id="loginBtn">Log in</button>
+        <a href="/profile.html" class="profile-link" style="display: none;">
+            <img src="/img/profile-icon.svg" alt="Profile" class="profile-icon">
+        </a>
+    </div>
+</div>
+<nav>
+    <div class="crypto">
+        <div class="crypto-name">Bitcoin (BTC)</div>
+        <div class="crypto-price">$96,500</div>
+    </div>
+    <div class="crypto">
+        <div class="crypto-name">Ethereum (ETH)</div>
+        <div class="crypto-price">$2,660</div>
+    </div>
+    <div class="crypto">
+        <div class="crypto-name">USDT</div>
+        <div class="crypto-price">$1</div>
+    </div>
+    <div class="crypto">
+        <div class="crypto-name">Solana (SOL)</div>
+        <div class="crypto-price">$201</div>
+    </div>
+    <div class="crypto">
+        <div class="crypto-name">BNB</div>
+        <div class="crypto-price">$626</div>
+    </div>
+    <div class="crypto">
+        <div class="crypto-name">USDC</div>
+        <div class="crypto-price">$1</div>
+    </div>
+    <div class="crypto">
+        <div class="crypto-name">Dogecoin (DOGE)</div>
+        <div class="crypto-price">$0.254</div>
+    </div>
+    <div class="crypto">
+        <div class="crypto-name">Cardano (ADA)</div>
+        <div class="crypto-price">$0.695</div>
+    </div>
+    <div class="crypto">
+        <div class="crypto-name">Tron (TRX)</div>
+        <div class="crypto-price">$0.065</div>
+    </div>
+</nav>
+
+<div class="conta" id="crypto-list">
+    <div class="crypto-header">
+        <div class="crypto-number">#</div>
+        <div class="crypto-name">Название</div>
+        <div class="crypto-price">Цена</div>
+        <div class="change-label">Изм. за час</div>
+        <div class="change-label">Изм. за день</div>
+        <div class="change-label">Изм. за неделю</div>
+        <div class="crypto-marketcap">Капитализация</div>
+        <div class="crypto-volume">Объем торгов за 24ч</div>
+        <div class="crypto-supply">Объём</div>
+    </div>
+
+    <div class="crypto-row">
+        <div class="star-button" onclick="toggleFavorite(this)">☆</div>
+        <div class="crypto-number">1</div>
+        <div class="crypto-name">Bitcoin (BTC)</div>
+        <div class="crypto-price">$40,000</div>
+        <div class="crypto-change positive">+2.5%</div>
+        <div class="crypto-change negative">-1.0%</div>
+        <div class="crypto-change positive">+5.0%</div>
+        <div class="crypto-marketcap">$750 млрд</div>
+        <div class="crypto-volume">$30 млрд</div>
+        <div class="crypto-supply">18.7 млн</div>
+    </div>
+    <div class="crypto-row">
+        <div class="star-button" onclick="toggleFavorite(this)">☆</div>
+        <div class="crypto-number">2</div>
+        <div class="crypto-name">Ethereum (ETH)</div>
+        <div class="crypto-price">$2,800</div>
+        <div class="crypto-change positive">+3.0%</div>
+        <div class="crypto-change negative">-0.5%</div>
+        <div class="crypto-change positive">+7.0%</div>
+        <div class="crypto-marketcap">$350 млрд</div>
+        <div class="crypto-volume">$20 млрд</div>
+        <div class="crypto-supply">115 млн</div>
+    </div>
+    <div class="crypto-row">
+        <div class="star-button" onclick="toggleFavorite(this)">☆</div>
+        <div class="crypto-number">3</div>
+        <div class="crypto-name">Binance Coin (BNB)</div>
+        <div class="crypto-price">$350</div>
+        <div class="crypto-change positive">+1.5%</div>
+        <div class="crypto-change negative">-0.3%</div>
+        <div class="crypto-change positive">+4.5%</div>
+        <div class="crypto-marketcap">$60 млрд</div>
+        <div class="crypto-volume">$1.5 млрд</div>
+        <div class="crypto-supply">155 млн</div>
+    </div>
+    <div class="crypto-row">
+        <div class="star-button" onclick="toggleFavorite(this)">☆</div>
+        <div class="crypto-number">4</div>
+        <div class="crypto-name">Cardano (ADA)</div>
+        <div class="crypto-price">$1.20</div>
+        <div class="crypto-change positive">+2.0%</div>
+        <div class="crypto-change negative">-0.6%</div>
+        <div class="crypto-change positive">+6.0%</div>
+        <div class="crypto-marketcap">$40 млрд</div>
+        <div class="crypto-volume">$800 млн</div>
+        <div class="crypto-supply">32 млрд</div>
+    </div>
+</div>
+
+<div class="pagination">
+    <button class="page-button" onclick="changePage(-1)">«</button>
+    <span id="page-numbers"></span>
+    <button class="page-button" onclick="changePage(1)">»</button>
+</div>
+
+<div class="button-group">
+    <button class="button active" data-type="all">Все</button>
+    <button class="button" data-type="type1">Тип 1</button>
+    <button class="button" data-type="type2">Тип 2</button>
+    <button class="button" data-type="type3">Тип 3</button>
+</div>
+
+<div class="news-grid" id="newsGrid">
+    <!-- Новости будут динамически добавляться сюда -->
+</div>
+
+
+
+
+<div class="modal" id="modal">
+    <div class="modal-body">
+        <div class="toggle-container">
+            <button class="toggle-button active" id="toLogin">Log In</button>
+            <button class="toggle-button" id="toRegister">Sign Up</button>
+            <button id="closeModal">×</button>
+        </div>
+        <div id="registrationForm" style="display: none;">
+            <!-- - -->
+            <div class="form-group">
+                <input type="text" id="registerUsername" placeholder="Username" required>
+            </div>
+            <!-- - -->
+            <div class="form-group">
+                <input type="email" id="registerEmail" placeholder="Email" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="registerPassword" placeholder="Password" required>
+            </div>
+            <button class="action-button">Зарегистрироваться</button>
+            <div class="or-divider">
+                <span class="or-text">OR</span>
+            </div>
+            <button class="action-button">Вход через Google</button>
+        </div>
+        <div id="loginForm">
+            <div class="form-group">
+                <input type="email" id="loginEmail" placeholder="Почта" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="loginPassword" placeholder="Пароль" required>
+            </div>
+            <button  class="action-button" id="loginButton">Войти</button>
+            <div class="or-divider">
+                <span class="or-text">OR</span>
+            </div>
+            <button class="action-button">Вход через Google</button>
+        </div>
+    </div>
+</div>
+
+<script src="/scripts/api.js"></script>
+<script src="/scripts/main.js"></script>
+<script>
+    function showLogin() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('registrationForm').style.display = 'none';
+        document.getElementById('toLogin').classList.add('active');
+        document.getElementById('toRegister').classList.remove('active');
+    }
+
+    function showRegister() {
+        document.getElementById('registrationForm').style.display = 'block';
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('toRegister').classList.add('active');
+        document.getElementById('toLogin').classList.remove('active');
+    }
+
+    function closeModal() {
+        document.getElementById('modal').style.display = 'none';
+    }
+</script>
+</body>
+</html>

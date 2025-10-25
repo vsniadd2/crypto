@@ -1,0 +1,301 @@
+.container {
+    max-width: 1920px;
+    background-color: #1D1D1D;
+}
+
+.nav {
+    display: flex;
+    max-width: 1920px;
+    margin-top: 25px;
+    height: 64px;
+}
+
+.logo {
+    margin-left: 77px;
+}
+
+.page_buttons_block {
+    margin-left: 80px;
+}
+
+.page_button {
+    background-color: #1D1D1D;
+    color: white;
+    border: none;
+    font-weight: 500;
+    font-family: Inter;
+    font-size: 14px;
+    margin-top: 20px;
+    margin-left: 15px;
+}
+
+.nav_search_block {
+    background-color: #313131;
+    margin-left: 950px;
+    width: 256px;
+    height: 32px;
+    margin-top: 15px;
+    display: flex;
+}
+
+.input_search {
+    font-size: 12px;
+    font-weight: 500;
+    font-family: Inter;
+    width: 206px;
+    height: 28px;
+    background-color: #313131;
+    color: #646B80;
+    border: none;
+    outline-offset: 0;
+    outline: 0;
+}
+
+.backslash {
+    margin-top: 6px;
+    height: 20px;
+    width: 20px;
+}
+
+.search {
+    margin-top: 6px;
+    height: 20px;
+    width: 20px;
+}
+
+.registration_button {
+    margin-top: 16px;
+    margin-left: 10px;
+    background-color: #FFCB74;
+    color: white;
+    font-family: Inter;
+    font-weight: 500;
+    width: 67.91999816894531px;
+    height: 32px;
+    border-radius: 7.92px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    width: 300px;
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+.modal-header {
+    padding: 10px;
+    background: #f1f1f1;
+    text-align: right;
+}
+.modal-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.modal-body {
+    padding: 20px;
+}
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+.switch-button {
+    cursor: pointer;
+    color: blue;
+    text-decoration: underline;
+    text-align: center;
+    margin-bottom: 15px;
+}
+.action-button {
+    background-color: #4285F4;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+}
+.toggle-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+.toggle-button {
+    cursor: pointer;
+    padding: 10px;
+    width: 100%;
+    text-align: center;
+    background: none;
+    border: none;
+    font-weight: bold;
+}
+.active {
+    color: #4285F4;
+    border-bottom: 2px solid #4285F4;
+}
+.or-divider {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+}
+.or-divider::before,
+.or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #ccc;
+    margin: 0 10px;
+}
+.or-text {
+    padding: 0 10px;
+    color: #777;
+}
+
+nav {
+    color: white;
+    padding: 30px;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+.crypto {
+    display: flex;
+    align-items: center; /* Выравнивание по центру */
+    margin: 0 15px;
+}
+.crypto-name {
+    font-weight: bold;
+    margin-right: 5px; /* Отступ между названием и ценой */
+}
+.crypto-price {
+    font-size: 0.9em;
+    color: #61dafb; /* Цвет для цен */
+}
+
+.conta {
+    width: 90%;
+    margin: auto;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+.crypto-header, .crypto-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    border-bottom: 1px solid #333;
+}
+.crypto-header {
+    font-weight: bold;
+    background-color: #282c34;
+}
+.crypto-row:last-child {
+    border-bottom: none;
+}
+.crypto-number, .crypto-name, .crypto-price, .crypto-change, .crypto-marketcap, .crypto-volume, .crypto-supply {
+    text-align: right;
+    width: 140px; /* Ширина для всех колонок */
+}
+.crypto-name {
+    text-align: left;
+    width: 200px; /* Больше ширины для названия */
+}
+.crypto-change {
+    color: #00ff00; /* Зеленый для положительных изменений */
+}
+.crypto-change.negative {
+    color: #ff0000; /* Красный для отрицательных изменений */
+}
+.change-label {
+    text-align: center;
+    width: 140px; /* Ширина для меток изменений */
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+.page-button, .page-number {
+    margin: 0 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    background-color: #282c34;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+.page-number.active {
+    background-color: #444;
+}
+.star-button {
+    cursor: pointer;
+    color: #ccc; /* Серый цвет по умолчанию */
+    margin-right: 10px;
+    font-size: 20px; /* Размер звезды */
+}
+.star-button.favorited {
+    color: gold; /* Жёлтый цвет при добавлении в избранное */
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.button {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    position: relative;
+    margin: 0 5px;
+}
+.button.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -5px;
+    height: 2px;
+    background-color: #007BFF;
+}
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+.news-item {
+    background: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+.news-item img {
+    max-width: 100%;
+    border-radius: 5px;
+}
+.news-title {
+    font-size: 18px;
+    margin: 10px 0 5px;
+}
+.news-text {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+.news-time {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 12px;
+    color: #888;
+}
