@@ -4,6 +4,7 @@ import com.difbriy.web.dto.UserDto;
 import com.difbriy.web.entity.User;
 import com.difbriy.web.mapper.UserMapper;
 import com.difbriy.web.repository.UserRepository;
+import com.difbriy.web.service.mail.MailService;
 import com.difbriy.web.service.security.CustomUserDetailsService;
 import com.difbriy.web.service.security.JwtService;
 import com.difbriy.web.token.Token;
@@ -30,6 +31,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final UserMapper userMapper;
     private final TokenRepository tokenRepository;
+    private final MailService mailService;
 
     @Transactional
     public AuthenticationResponse register(RegistrationRequest request) {
@@ -43,6 +45,7 @@ public class AuthenticationService {
         savedUserToken(savedUser, jwtToken);
 
         UserDto userDto = userMapper.toDto(user);
+        mailService.createAndSentEmail(request.email());
         return AuthenticationResponse.registration(
                 jwtToken,
                 refreshToken,
