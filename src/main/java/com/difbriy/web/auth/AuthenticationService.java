@@ -19,6 +19,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +47,16 @@ public class AuthenticationService {
         savedUserToken(savedUser, jwtToken);
 
         UserDto userDto = userMapper.toDto(user);
-        mailService.createAndSentEmail(request.email());
+
+        //комментарий над самим методом
+        runAfterCommit(
+                () -> mailService.sendWelcomeEmailAsync(request.email())
+                        .exceptionally(ex -> {
+                            log.error("Async email sending failed for {}", request.email(), ex);
+                            return null;
+                        })
+        );
+
         return AuthenticationResponse.registration(
                 jwtToken,
                 refreshToken,
@@ -68,7 +79,6 @@ public class AuthenticationService {
         revokeAllUserToken(user);
         savedUserToken(user, jwtToken);
         savedUserRefreshToken(user, refreshToken);
-
 
         UserDto userDto = userMapper.toDto(user);
         return AuthenticationResponse.login(
@@ -168,5 +178,18 @@ public class AuthenticationService {
     private void validateRefreshToken(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer "))
             throw new IllegalArgumentException("Missing or invalid Authorization header");
+    }
+
+    /**
+     * Отправка письма о регистрации пользователя без вреда производительности метода регистрации
+     *
+     **/
+    private void runAfterCommit(Runnable runnable) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                runnable.run();
+            }
+        });
     }
 }

@@ -2,9 +2,12 @@ package com.difbriy.web.service.mail;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -24,11 +27,20 @@ public class MailService {
                     С уважением, Команда MERO
                     """;
 
-    public void createAndSentEmail(String to) {
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(to);
-        mailMessage.setSubject(MAIL_SUBJECT_TEXT);
-        mailMessage.setText(MAIL_TEXT);
-        mailSender.send(mailMessage);
+    public CompletableFuture<Void> sendWelcomeEmailAsync(String to) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                SimpleMailMessage mailMessage = new SimpleMailMessage();
+                mailMessage.setTo(to);
+                mailMessage.setSubject(MAIL_SUBJECT_TEXT);
+                mailMessage.setText(MAIL_TEXT);
+
+                mailSender.send(mailMessage);
+            } catch (MailException e) {
+                log.error("Failed to send welcome email to {}:{}", to, e.getMessage());
+            }
+        });
+
+
     }
 }
