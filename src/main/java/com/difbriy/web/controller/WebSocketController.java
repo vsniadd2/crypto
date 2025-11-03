@@ -1,8 +1,8 @@
 package com.difbriy.web.controller;
 
-import com.difbriy.web.dto.CryptoChartData;
-import com.difbriy.web.dto.PredictionRequestDto;
-import com.difbriy.web.dto.PredictionResponseDto;
+import com.difbriy.web.dto.crypto.CryptoChartData;
+import com.difbriy.web.dto.crypto.PredictionRequestDto;
+import com.difbriy.web.dto.crypto.PredictionResponseDto;
 import com.difbriy.web.entity.CryptoData;
 import com.difbriy.web.service.crypto.CryptoService;
 import com.difbriy.web.locallm.service.CryptoPredictionLLMService;

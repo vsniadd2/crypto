@@ -1,6 +1,6 @@
 package com.difbriy.web.auth;
 
-import com.difbriy.web.dto.UserDto;
+import com.difbriy.web.dto.user.UserDto;
 import com.difbriy.web.entity.User;
 import com.difbriy.web.mapper.UserMapper;
 import com.difbriy.web.repository.UserRepository;
@@ -12,6 +12,7 @@ import com.difbriy.web.token.TokenRepository;
 import com.difbriy.web.token.TokenType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -65,7 +66,7 @@ public class AuthenticationService {
         );
     }
 
-    @Transactional
+    @Async
     public CompletableFuture<AuthenticationResponse> registerAsync(RegistrationRequest request) {
         return CompletableFuture.supplyAsync(() -> register(request));
     }
@@ -94,6 +95,7 @@ public class AuthenticationService {
         );
     }
 
+    @Async
     public CompletableFuture<AuthenticationResponse> authenticateAsync(AuthenticationRequest authenticationRequest) {
         return CompletableFuture.supplyAsync(() -> authenticate(authenticationRequest));
     }

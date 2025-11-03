@@ -1,4 +1,4 @@
-package com.difbriy.web.dto;
+package com.difbriy.web.dto.crypto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

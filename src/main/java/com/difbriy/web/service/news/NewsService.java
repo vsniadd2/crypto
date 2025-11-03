@@ -1,7 +1,7 @@
 package com.difbriy.web.service.news;
 
-import com.difbriy.web.dto.NewsDto;
-import com.difbriy.web.dto.NewsResponseDto;
+import com.difbriy.web.dto.news.NewsDto;
+import com.difbriy.web.dto.news.NewsResponseDto;
 import com.difbriy.web.entity.News;
 import com.difbriy.web.repository.NewsRepository;
 import org.springframework.beans.factory.annotation.Autowired;

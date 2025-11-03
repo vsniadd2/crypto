@@ -1,7 +1,7 @@
 package com.difbriy.web.controller;
 
-import com.difbriy.web.dto.NewsDto;
-import com.difbriy.web.dto.NewsResponseDto;
+import com.difbriy.web.dto.news.NewsDto;
+import com.difbriy.web.dto.news.NewsResponseDto;
 import com.difbriy.web.service.news.NewsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;

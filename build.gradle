@@ -73,11 +73,40 @@ dependencies {
     //MAIL
     implementation("org.springframework.boot:spring-boot-starter-mail")
 
+    //actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+
 
 
 }
 
-
+//убирает warnings after start application
 tasks.named('test') {
     useJUnitPlatform()
+    jvmArgs = [
+        '--enable-native-access=ALL-UNNAMED',
+        '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+        '--add-opens=java.base/java.io=ALL-UNNAMED',
+        '--add-opens=java.base/sun.misc=ALL-UNNAMED'
+    ]
+}
+
+tasks.named('bootRun') {
+    jvmArgs = [
+        '--enable-native-access=ALL-UNNAMED',
+        '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+        '--add-opens=java.base/java.io=ALL-UNNAMED',
+        '--add-opens=java.base/sun.misc=ALL-UNNAMED'
+    ]
+}
+
+// Применяем JVM аргументы ко всем задачам Java
+tasks.withType(JavaExec).configureEach {
+    jvmArgs = [
+        '--enable-native-access=ALL-UNNAMED',
+        '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+        '--add-opens=java.base/java.io=ALL-UNNAMED',
+        '--add-opens=java.base/sun.misc=ALL-UNNAMED'
+    ]
 }

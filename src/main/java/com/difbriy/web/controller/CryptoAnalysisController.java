@@ -1,7 +1,7 @@
 package com.difbriy.web.controller;
 
-import com.difbriy.web.dto.CryptoAnalysisRequest;
-import com.difbriy.web.dto.CryptoAnalysisResponse;
+import com.difbriy.web.dto.crypto.CryptoAnalysisRequest;
+import com.difbriy.web.dto.crypto.CryptoAnalysisResponse;
 import com.difbriy.web.service.crypto.CryptoAnalysisService;
 import com.difbriy.web.service.llm.LocalLLMService;
 import lombok.RequiredArgsConstructor;

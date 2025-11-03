@@ -1,6 +1,6 @@
 package com.difbriy.web.auth;
 
-import com.difbriy.web.dto.UserDto;
+import com.difbriy.web.dto.user.UserDto;
 import lombok.Builder;
 
 import java.time.LocalDateTime;

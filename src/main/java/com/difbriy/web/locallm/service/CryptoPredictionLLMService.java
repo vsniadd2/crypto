@@ -1,6 +1,9 @@
 package com.difbriy.web.locallm.service;
 
-import com.difbriy.web.dto.*;
+import com.difbriy.web.dto.crypto.CryptoAnalysisDataDto;
+import com.difbriy.web.dto.crypto.PredictionRequestDto;
+import com.difbriy.web.dto.crypto.PredictionResponseDto;
+import com.difbriy.web.dto.crypto.PriceDataPoint;
 import com.difbriy.web.entity.CryptoData;
 import com.difbriy.web.entity.CryptoPrediction;
 import com.difbriy.web.repository.CryptoDataRepository;

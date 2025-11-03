@@ -1,8 +1,8 @@
 package com.difbriy.web.service.crypto;
 
-import com.difbriy.web.dto.CryptoAnalysisRequest;
-import com.difbriy.web.dto.CryptoAnalysisResponse;
-import com.difbriy.web.dto.CryptoForecastResponse;
+import com.difbriy.web.dto.crypto.CryptoAnalysisRequest;
+import com.difbriy.web.dto.crypto.CryptoAnalysisResponse;
+import com.difbriy.web.dto.crypto.CryptoForecastResponse;
 import com.difbriy.web.entity.CryptoAnalysis;
 import com.difbriy.web.entity.CryptoForecast;
 import com.difbriy.web.repository.CryptoAnalysisRepository;

@@ -1,6 +1,6 @@
 package com.difbriy.web.controller;
 
-import com.difbriy.web.dto.CryptoChartData;
+import com.difbriy.web.dto.crypto.CryptoChartData;
 import com.difbriy.web.entity.CryptoData;
 import com.difbriy.web.service.crypto.CryptoService;
 import lombok.RequiredArgsConstructor;

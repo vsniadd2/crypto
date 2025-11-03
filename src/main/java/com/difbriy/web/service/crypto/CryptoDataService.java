@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CryptoDataService {
     
-    @Value("${api.crypto}")
+    @Value("${api.crypto.coingecko}")
     private String cryptoApiUrl;
     
     @Value("${api.crypto.key}")

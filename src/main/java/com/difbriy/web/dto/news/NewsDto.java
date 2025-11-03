@@ -1,4 +1,4 @@
-package com.difbriy.web.dto;
+package com.difbriy.web.dto.news;
 
 import lombok.Getter;
 import lombok.Setter;

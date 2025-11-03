@@ -1,4 +1,4 @@
-package com.difbriy.web.dto;
+package com.difbriy.web.dto.user;
 
 public record OAuth2Dto(
         boolean success,
