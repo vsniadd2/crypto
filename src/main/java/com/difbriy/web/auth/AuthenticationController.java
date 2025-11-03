@@ -30,23 +30,35 @@ public class AuthenticationController {
 
     @PostMapping("/registration")
     public CompletableFuture<ResponseEntity<?>> registration(@Valid @RequestBody RegistrationRequest request) {
-        return authenticationService.registerAsync(request).thenApply(ResponseEntity::ok);
+        return authenticationService.registerAsync(request)
+                .thenApply(response ->
+                        ResponseEntity
+                                .status(HttpStatus.OK)
+                                .body(response)
+                );
     }
 
     @PostMapping("/authenticate")
     public CompletableFuture<ResponseEntity<AuthenticationResponse>> authenticate(
             @Valid @RequestBody AuthenticationRequest authenticationRequest) {
         return authenticationService.authenticateAsync(authenticationRequest)
-                .thenApply(ResponseEntity::ok);
+                .thenApply(response ->
+                        ResponseEntity
+                                .status(HttpStatus.OK)
+                                .body(response)
+                );
     }
 
-
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(
+    public CompletableFuture<ResponseEntity<?>> refreshToken(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader
     ) {
-        AuthenticationResponse response = authenticationService.refreshToken(authHeader);
-        return ResponseEntity.ok(response);
+        return authenticationService.refreshTokenAsync(authHeader)
+                .thenApply(response ->
+                        ResponseEntity
+                                .status(HttpStatus.OK)
+                                .body(response)
+                );
     }
 }
 

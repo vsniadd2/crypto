@@ -142,6 +142,10 @@ public class AuthenticationService {
                 .build();
     }
 
+    public CompletableFuture<AuthenticationResponse> refreshTokenAsync(String authHeader) {
+        return CompletableFuture.supplyAsync(() -> refreshToken(authHeader));
+    }
+
     private void revokeAllUserToken(User user) {
         var validUserTokens = tokenRepository.findAllValidTokensByUser(user.getId().intValue());
         if (validUserTokens.isEmpty())
