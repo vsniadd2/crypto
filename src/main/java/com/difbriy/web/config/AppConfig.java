@@ -5,10 +5,18 @@ import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilde
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Clock;
+import java.time.Instant;
+
 @Configuration
-public class JacksonConfig {
+public class AppConfig {
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer customizer() {
         return builder -> builder.propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+    }
+
+    @Bean
+    public Clock clock(){
+        return Clock.systemUTC();
     }
 }

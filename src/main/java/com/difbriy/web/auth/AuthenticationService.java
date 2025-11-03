@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -56,12 +58,16 @@ public class AuthenticationService {
                             return null;
                         })
         );
-
         return AuthenticationResponse.registration(
                 jwtToken,
                 refreshToken,
                 userDto
         );
+    }
+
+    @Transactional
+    public CompletableFuture<AuthenticationResponse> registerAsync(RegistrationRequest request) {
+        return CompletableFuture.supplyAsync(() -> register(request));
     }
 
     @Transactional
@@ -87,6 +93,11 @@ public class AuthenticationService {
                 userDto
         );
     }
+
+    public CompletableFuture<AuthenticationResponse> authenticateAsync(AuthenticationRequest authenticationRequest) {
+        return CompletableFuture.supplyAsync(() -> authenticate(authenticationRequest));
+    }
+
 
     @Transactional
     public AuthenticationResponse refreshToken(String authHeader) {

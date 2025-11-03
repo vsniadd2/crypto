@@ -2,6 +2,7 @@ package com.difbriy.web.auth;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -26,16 +29,17 @@ public class AuthenticationController {
     private RedisTemplate<String, Object> redisTemplate;
 
     @PostMapping("/registration")
-    public ResponseEntity<?> registration(@Valid @RequestBody RegistrationRequest request) {
-        AuthenticationResponse response = authenticationService.register(request);
-        return ResponseEntity.ok(response);
+    public CompletableFuture<ResponseEntity<?>> registration(@Valid @RequestBody RegistrationRequest request) {
+        return authenticationService.registerAsync(request).thenApply(ResponseEntity::ok);
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> authenticate(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
-        AuthenticationResponse response = authenticationService.authenticate(authenticationRequest);
-        return ResponseEntity.ok(response);
+    public CompletableFuture<ResponseEntity<AuthenticationResponse>> authenticate(
+            @Valid @RequestBody AuthenticationRequest authenticationRequest) {
+        return authenticationService.authenticateAsync(authenticationRequest)
+                .thenApply(ResponseEntity::ok);
     }
+
 
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(
