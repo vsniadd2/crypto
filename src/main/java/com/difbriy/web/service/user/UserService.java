@@ -1,5 +1,6 @@
 package com.difbriy.web.service.user;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -58,7 +59,7 @@ public class UserService {
         return userRepository.findByResetToken(token).orElseThrow(() -> new RuntimeException("Токен не найден"));
     }
 
-    @Transactional
+    @Transactional()
     public UpdatedProfileResponseDto updateProfile(Long userId, String username, String email) {
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         validateUpdate(user, userId, username, email);
