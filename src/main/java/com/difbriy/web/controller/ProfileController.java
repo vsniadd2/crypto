@@ -37,11 +37,11 @@ public class ProfileController {
 
         User user = userService.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-
         return ResponseEntity.ok(ProfileDto.success(
                 user.getId(),
                 user.getUsername(),
-                user.getEmail()
+                user.getEmail(),
+                user.getDateTimeOfCreated()
         ));
     }
 
