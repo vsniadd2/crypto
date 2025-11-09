@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.UUID;
 
 @Component
 public class JwtService {
@@ -40,6 +41,7 @@ public class JwtService {
     public String generateRefreshToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("typ", "refresh_token");
+        claims.put("jti", UUID.randomUUID().toString());
         return Jwts.builder()
                 .claims(claims)
                 .subject(userDetails.getUsername())

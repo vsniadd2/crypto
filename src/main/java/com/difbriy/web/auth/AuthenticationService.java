@@ -52,13 +52,18 @@ public class AuthenticationService {
         UserDto userDto = userMapper.toDto(user);
 
         //комментарий над самим методом
-        runAfterCommit(
-                () -> mailService.sendWelcomeEmailAsync(request.email())
-                        .exceptionally(ex -> {
-                            log.error("Async email sending failed for {}", request.email(), ex);
-                            return null;
-                        })
-        );
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            runAfterCommit(
+                    () -> mailService.sendWelcomeEmailAsync(request.email())
+                            .exceptionally(ex -> {
+                                log.error("Async email sending failed for {}", request.email(), ex);
+                                return null;
+                            })
+            );
+        } else {
+            mailService.sendWelcomeEmailAsync(request.email());
+        }
+
         return AuthenticationResponse.registration(
                 jwtToken,
                 refreshToken,

@@ -12,6 +12,15 @@ services:
     networks:
       - app-network
 
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - "5540:5540"
+    restart: unless-stopped
+    networks:
+      - app-network
+
   ollama:
     image: ollama/ollama:latest
     container_name: ollama-llm
