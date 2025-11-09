@@ -51,6 +51,7 @@ public class JwtService {
                 .compact();
     }
 
+
     public String generateToken(UserDetails userDetails) {
 
         Map<String, Object> claims = new HashMap<>();
