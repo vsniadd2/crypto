@@ -1,6 +1,5 @@
 package com.difbriy.web.service.user;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -8,11 +7,14 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import com.difbriy.web.dto.user.ProfileDto;
 import com.difbriy.web.dto.user.UpdatedProfileResponseDto;
+import com.difbriy.web.mapper.ProfileMapper;
 import com.difbriy.web.mapper.UserMapper;
 import com.difbriy.web.service.security.CustomUserDetailsService;
 import com.difbriy.web.service.security.JwtService;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.difbriy.web.entity.User;
@@ -32,13 +34,16 @@ public class UserService {
     private final UserMapper mapper;
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtService jwtService;
-
-    public Optional<User> getPersonById(Long id) {
-        return userRepository.findById(id);
-    }
+    private final ProfileMapper profileMapper;
 
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public ProfileDto getProfileByEmail(String email) {
+        User user = findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        return profileMapper.toDto(user);
     }
 
     //TODO(восстоновление паролья)

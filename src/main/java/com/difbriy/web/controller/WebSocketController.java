@@ -28,9 +28,6 @@ public class WebSocketController {
     private final CryptoPredictionLLMService cryptoPredictionService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    /**
-     * Обработка подключения клиента
-     */
     @MessageMapping("/connect")
     @SendTo("/topic/connected")
     public Map<String, Object> handleConnect(SimpMessageHeaderAccessor headerAccessor) {
@@ -45,9 +42,6 @@ public class WebSocketController {
         );
     }
 
-    /**
-     * Обработка отключения клиента
-     */
     @MessageMapping("/disconnect")
     @SendTo("/topic/disconnected")
     public Map<String, Object> handleDisconnect(SimpMessageHeaderAccessor headerAccessor) {
@@ -61,9 +55,6 @@ public class WebSocketController {
         );
     }
 
-    /**
-     * Ping/Pong для проверки соединения
-     */
     @MessageMapping("/ping")
     @SendToUser("/topic/pong")
     public Map<String, Object> handlePing(SimpMessageHeaderAccessor headerAccessor) {
@@ -77,16 +68,12 @@ public class WebSocketController {
         );
     }
 
-    /**
-     * Получение текущих данных криптовалют
-     */
     @MessageMapping("/crypto/request")
     @SendToUser("/topic/crypto/response")
     public Map<String, Object> handleCryptoRequest(SimpMessageHeaderAccessor headerAccessor) {
         String sessionId = headerAccessor.getSessionId();
         log.info("Crypto data requested by session: {}", sessionId);
-        
-        // Отправляем данные криптовалют по запросу
+
         cryptoService.sendCryptoDataOnDemand();
         
         return Map.of(
@@ -96,22 +83,15 @@ public class WebSocketController {
         );
     }
 
-    /**
-     * Получение данных конкретной криптовалюты
-     */
     @MessageMapping("/crypto/single")
     public void handleSingleCryptoRequest(Map<String, Object> request, SimpMessageHeaderAccessor headerAccessor) {
         String sessionId = headerAccessor.getSessionId();
         Long coinId = Long.valueOf(request.get("coinId").toString());
         log.info("Single crypto data requested for coin ID: {} by session: {}", coinId, sessionId);
-        
-        // Отправляем данные конкретной криптовалюты
+
         cryptoService.sendSingleCryptoData(coinId);
     }
 
-    /**
-     * Получение текущих новостей
-     */
     @MessageMapping("/news/request")
     @SendToUser("/topic/news/response")
     public Map<String, Object> handleNewsRequest(SimpMessageHeaderAccessor headerAccessor) {
@@ -125,9 +105,6 @@ public class WebSocketController {
         );
     }
 
-    /**
-     * Запрос данных графика для конкретной криптовалюты
-     */
     @MessageMapping("/chart/request")
     public void handleChartRequest(Map<String, Object> request, SimpMessageHeaderAccessor headerAccessor) {
         String sessionId = headerAccessor.getSessionId();
@@ -140,10 +117,8 @@ public class WebSocketController {
             List<CryptoData> historyData = cryptoService.getCryptoHistory(symbol, period);
             
             if (!historyData.isEmpty()) {
-                // Получаем последние данные для текущих значений
                 CryptoData latestData = cryptoService.getLatestCryptoData(symbol);
-                
-                // Преобразуем данные в формат для графика
+
                 List<CryptoChartData.ChartPoint> chartPoints = historyData.stream()
                         .map(data -> new CryptoChartData.ChartPoint(
                                 data.getTimestamp(),
@@ -167,11 +142,9 @@ public class WebSocketController {
                     chartData.setLastUpdated(latestData.getTimestamp());
                 }
 
-                // Отправляем данные через WebSocket
                 messagingTemplate.convertAndSendToUser(sessionId, "/topic/chart/data", chartData);
                 log.info("Chart data sent for symbol: {} to session: {}", symbol, sessionId);
             } else {
-                // Отправляем сообщение об ошибке
                 messagingTemplate.convertAndSendToUser(sessionId, "/topic/chart/error", 
                     Map.of("error", "No data available for symbol: " + symbol));
             }
@@ -183,9 +156,6 @@ public class WebSocketController {
         }
     }
 
-    /**
-     * Запрос списка всех доступных символов криптовалют
-     */
     @MessageMapping("/chart/symbols")
     public void handleSymbolsRequest(SimpMessageHeaderAccessor headerAccessor) {
         String sessionId = headerAccessor.getSessionId();
@@ -202,9 +172,6 @@ public class WebSocketController {
         }
     }
 
-    /**
-     * Запрос статистики по криптовалюте
-     */
     @MessageMapping("/chart/stats")
     public void handleStatsRequest(Map<String, Object> request, SimpMessageHeaderAccessor headerAccessor) {
         String sessionId = headerAccessor.getSessionId();
@@ -215,10 +182,8 @@ public class WebSocketController {
         try {
             CryptoData latestData = cryptoService.getLatestCryptoData(symbol);
             if (latestData != null) {
-                // Получаем данные за 24 часа для статистики
                 List<CryptoData> last24h = cryptoService.getCryptoHistory(symbol, "24h");
-                
-                // Вычисляем статистику
+
                 double minPrice24h = last24h.stream()
                         .mapToDouble(data -> data.getPrice() != null ? data.getPrice().doubleValue() : 0.0)
                         .min()
@@ -261,9 +226,6 @@ public class WebSocketController {
         }
     }
 
-    /**
-     * Запрос прогноза для криптовалюты
-     */
     @MessageMapping("/prediction/request")
     public void handlePredictionRequest(Map<String, Object> request, SimpMessageHeaderAccessor headerAccessor) {
         String sessionId = headerAccessor.getSessionId();
@@ -293,9 +255,6 @@ public class WebSocketController {
         }
     }
 
-    /**
-     * Запрос последнего прогноза для криптовалюты
-     */
     @MessageMapping("/prediction/latest")
     public void handleLatestPredictionRequest(Map<String, Object> request, SimpMessageHeaderAccessor headerAccessor) {
         String sessionId = headerAccessor.getSessionId();
@@ -321,9 +280,6 @@ public class WebSocketController {
         }
     }
 
-    /**
-     * Запрос истории прогнозов для криптовалюты
-     */
     @MessageMapping("/prediction/history")
     public void handlePredictionHistoryRequest(Map<String, Object> request, SimpMessageHeaderAccessor headerAccessor) {
         String sessionId = headerAccessor.getSessionId();

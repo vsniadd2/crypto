@@ -2,7 +2,10 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.3'
     id 'io.spring.dependency-management' version '1.1.4'
+    id 'org.flywaydb.flyway' version '9.22.3'
 }
+
+def flywayVersion = '9.22.3'
 
 group = 'com.difbriy'
 version = '0.0.1-SNAPSHOT'
@@ -17,6 +20,7 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    flywayMigration
 }
 
 repositories {
@@ -46,10 +50,10 @@ dependencies {
 
     // Database
     runtimeOnly 'com.h2database:h2'
-    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.postgresql:postgresql'
 
     //FLYWAY
-    implementation 'org.flywaydb:flyway-core'
+    implementation "org.flywaydb:flyway-core:${flywayVersion}"
 
 
     // JWT
@@ -80,10 +84,18 @@ dependencies {
     //actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
+    flywayMigration 'org.postgresql:postgresql:42.7.3'
+}
 
-
-
-
+flyway {
+    url = 'jdbc:postgresql://localhost:5432/difbri_db'
+    user = 'postgres'
+    password = '4242'
+    locations = ['classpath:db/migration']
+    schemas = ['public']
+    configurations = ['flywayMigration', 'runtimeClasspath', 'compileClasspath']
+    driver = 'org.postgresql.Driver'
+    cleanDisabled = false
 }
 
 //убирает warnings after start application
@@ -93,7 +105,7 @@ tasks.named('test') {
         '--enable-native-access=ALL-UNNAMED',
         '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
         '--add-opens=java.base/java.io=ALL-UNNAMED',
-        '--add-opens=java.base/sun.misc=ALL-UNNAMED'
+        '--add-opens=jdk.unsupported/sun.misc=ALL-UNNAMED'
     ]
 }
 
@@ -102,7 +114,7 @@ tasks.named('bootRun') {
         '--enable-native-access=ALL-UNNAMED',
         '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
         '--add-opens=java.base/java.io=ALL-UNNAMED',
-        '--add-opens=java.base/sun.misc=ALL-UNNAMED'
+        '--add-opens=jdk.unsupported/sun.misc=ALL-UNNAMED'
     ]
 }
 
@@ -112,6 +124,6 @@ tasks.withType(JavaExec).configureEach {
         '--enable-native-access=ALL-UNNAMED',
         '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
         '--add-opens=java.base/java.io=ALL-UNNAMED',
-        '--add-opens=java.base/sun.misc=ALL-UNNAMED'
+        '--add-opens=jdk.unsupported/sun.misc=ALL-UNNAMED'
     ]
 }

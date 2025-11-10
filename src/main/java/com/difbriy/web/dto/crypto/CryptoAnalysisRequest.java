@@ -11,10 +11,10 @@ import java.util.List;
 @AllArgsConstructor
 public class CryptoAnalysisRequest {
     private String symbol;
-    private String analysisType; // "ANALYSIS" or "FORECAST"
-    private List<String> forecastPeriods; // ["1_MONTH", "6_MONTHS", "1_YEAR"]
+    private String analysisType;
+    private List<String> forecastPeriods;
     private boolean includeTechnicalAnalysis = true;
     private boolean includeFundamentalAnalysis = true;
     private boolean includeMarketSentiment = true;
-    private int historicalDataPoints = 100; // Количество точек для анализа
+    private int historicalDataPoints = 100;
 }

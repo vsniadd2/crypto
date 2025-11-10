@@ -35,14 +35,9 @@ public class ProfileController {
         String email = userDetails.getUsername();
         log.info("Getting profile for email: {}", email);
 
-        User user = userService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-        return ResponseEntity.ok(ProfileDto.success(
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getDateTimeOfCreated()
-        ));
+        var dto = userService.getProfileByEmail(email);
+
+        return ResponseEntity.ok(dto);
     }
 
     @PreAuthorize("isAuthenticated()")

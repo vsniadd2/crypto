@@ -7,8 +7,8 @@ import lombok.Data;
 @Builder
 public class PredictionRequestDto {
     private String symbol;
-    private String timeframe; // 1h, 24h, 7d
+    private String timeframe;
     private boolean includeNewsAnalysis;
     private boolean includeTechnicalAnalysis;
-    private int historicalDataPoints; // количество исторических точек для анализа
+    private int historicalDataPoints;
 }
