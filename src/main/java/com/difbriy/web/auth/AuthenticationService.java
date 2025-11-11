@@ -109,7 +109,7 @@ public class AuthenticationService {
     @Transactional
     public AuthenticationResponse refreshToken(String authHeader) {
         validateRefreshToken(authHeader);
-
+        log.info("sayonara boy");
         String refreshToken = authHeader.substring(7);
         String email = jwtService.getUsername(refreshToken);
 
