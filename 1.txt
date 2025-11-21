@@ -1,0 +1,109 @@
+# Реализация системы сброса пароля
+
+## Что уже есть в проекте:
+- В User entity есть поля resetToken и resetTokenExpiry
+- Есть базовый метод createPasswordRestToken() в UserService
+- Есть метод findByResetToken() в UserService
+- Используется PasswordEncoder для хеширования паролей (в AuthenticationService)
+
+## Что нужно дореализовать:
+
+### 1. Создать DTO для запросов (в папке dto/auth/):
+
+**PasswordResetRequestDto.java** - для запроса сброса пароля:
+- String email (с валидацией @Email, @NotBlank)
+
+**PasswordResetConfirmDto.java** - для подтверждения нового пароля:
+- String token (токен сброса)
+- String newPassword (с валидацией на сложность пароля)
+- String confirmPassword (подтверждение пароля)
+
+**PasswordResetResponseDto.java** - для ответов:
+- String message
+- String resetToken (для возврата токена)
+- String resetUrl (полная ссылка для сброса)
+- LocalDateTime expiresAt
+- boolean success
+
+### 2. Дополнить UserService новыми методами:
+
+**generatePasswordResetToken(String email):**
+- Найти пользователя по email
+- Сгенерировать UUID токен
+- Установить время истечения (1 час)
+- Сохранить в БД
+- Вернуть PasswordResetResponseDto с токеном и ссылкой
+
+**resetPassword(PasswordResetConfirmDto request):**
+- Найти пользователя по токену
+- Проверить что токен не истек
+- Проверить что newPassword == confirmPassword
+- Захешировать новый пароль через PasswordEncoder
+- Обновить пароль пользователя
+- Очистить resetToken и resetTokenExpiry
+- Сохранить в БД
+
+**validateResetToken(String token):**
+- Найти пользователя по токену
+- Проверить что токен существует и не истек
+- Вернуть boolean
+
+### 3. Создать PasswordResetController:
+
+**POST /api/auth/forgot-password** - запрос сброса:
+- Принимает PasswordResetRequestDto
+- Вызывает generatePasswordResetToken()
+- Возвращает ссылку для сброса пароля
+
+**GET /api/auth/reset-password/{token}** - проверка токена:
+- Проверяет валидность токена
+- Возвращает информацию о возможности сброса
+
+**POST /api/auth/reset-password** - установка нового пароля:
+- Принимает PasswordResetConfirmDto
+- Вызывает resetPassword()
+- Возвращает результат операции
+
+### 4. Добавить валидацию:
+
+В PasswordResetConfirmDto добавить кастомную валидацию:
+- Проверка что newPassword == confirmPassword
+- Проверка сложности пароля (минимум 8 символов, буквы, цифры, спецсимволы)
+
+### 5. Обработка ошибок:
+
+Создать кастомные исключения:
+- InvalidResetTokenException
+- ExpiredResetTokenException
+- PasswordMismatchException
+
+Добавить их обработку в GlobalExceptionHandler
+
+### 6. Безопасность:
+
+- Ограничить количество запросов на сброс пароля (rate limiting)
+- Логировать все попытки сброса пароля
+- Токен должен быть одноразовым (после использования - удалять)
+
+### 7. Тестирование:
+
+Создать тесты для:
+- Генерации токена сброса
+- Валидации токена
+- Смены пароля
+- Обработки истекших токенов
+- Обработки несуществующих токенов
+
+## Пример использования:
+
+1. POST /api/auth/forgot-password {"email": "user@example.com"}
+2. Получить ответ с resetUrl: "http://localhost:8080/api/auth/reset-password?token=abc123"
+3. POST /api/auth/reset-password {"token": "abc123", "newPassword": "NewPass123!", "confirmPassword": "NewPass123!"}
+4. Получить подтверждение успешной смены пароля
+
+## Дополнительные улучшения:
+
+- Добавить отправку email с ссылкой (когда будет готова почтовая система)
+- Добавить историю сброса паролей
+- Добавить возможность отмены запроса на сброс
+- Добавить уведомление на email о смене пароля

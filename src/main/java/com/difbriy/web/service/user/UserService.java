@@ -7,14 +7,18 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import com.difbriy.web.dto.user.PasswordResetConfirmDto;
+import com.difbriy.web.dto.user.PasswordResetResponseDto;
 import com.difbriy.web.dto.user.ProfileDto;
 import com.difbriy.web.dto.user.UpdatedProfileResponseDto;
+import com.difbriy.web.exception.custom.InvalidResetTokenException;
 import com.difbriy.web.mapper.ProfileMapper;
 import com.difbriy.web.mapper.UserMapper;
 import com.difbriy.web.service.security.CustomUserDetailsService;
 import com.difbriy.web.service.security.JwtService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.difbriy.web.entity.User;
@@ -35,6 +39,7 @@ public class UserService {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtService jwtService;
     private final ProfileMapper profileMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
@@ -46,17 +51,38 @@ public class UserService {
         return profileMapper.toDto(user);
     }
 
-    //TODO(восстоновление паролья)
-    public void createPasswordRestToken(String email) {
-        Optional<User> person = userRepository.findByEmail(email);
-        if (person.isPresent()) {
-            String token = UUID.randomUUID().toString();
-            person.get().setResetToken(token);
-            person.get().setResetTokenExpiry(LocalDateTime.now().plusHours(1));
-            userRepository.save(person.get());
-        } else {
-            log.warn("User not found with email: {}", email);
-        }
+    @Transactional
+    public PasswordResetResponseDto generatePasswordResetToken(String email) {
+        String token = UUID.randomUUID().toString();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        user.setResetToken(token);
+        user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+        userRepository.save(user);
+        
+        String resetUrl = "http://localhost:8080/api/auth/reset-password?token=" + token;
+        
+        return PasswordResetResponseDto.builder()
+                .message("success")
+                .resetToken(token)
+                .resetUrl(resetUrl)
+                .expiresAt(user.getResetTokenExpiry())
+                .success(true)
+                .build();
+    }
+
+    @Transactional
+    public PasswordResetResponseDto resetPassword(PasswordResetConfirmDto confirmDto) {
+        User user = validateToken(confirmDto);
+
+        user.setPassword(passwordEncoder.encode(confirmDto.newPassword()));
+        // Очищаем токен после использования (одноразовый)
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepository.save(user);
+        
+        log.info("Password successfully reset for user: {}", user.getEmail());
+        return PasswordResetResponseDto.passwordChanged();
     }
 
     //TODO
@@ -81,6 +107,29 @@ public class UserService {
     @Async
     public CompletableFuture<?> updateProfileAsync(Long userId, String username, String email) {
         return CompletableFuture.supplyAsync(() -> updateProfile(userId, username, email));
+    }
+
+
+    private User validateToken(PasswordResetConfirmDto dto) {
+        // Проверка на пустой токен
+        if (dto.token() == null || dto.token().trim().isEmpty()) {
+            throw new InvalidResetTokenException("Token cannot be empty");
+        }
+        
+        User user = userRepository.findByResetToken(dto.token())
+                .orElseThrow(() -> new InvalidResetTokenException("Invalid reset token"));
+
+        // Проверка истечения токена
+        if (user.getResetTokenExpiry() == null || user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new InvalidResetTokenException("The token has expired");
+        }
+
+        // Правильное сравнение строк
+        if (!dto.newPassword().equals(dto.confirmPassword())) {
+            throw new InvalidResetTokenException("The passwords don't match");
+        }
+        
+        return user;
     }
 
     private void validateUpdate(User user, Long userId, String username, String email) {
