@@ -20,9 +20,6 @@ public class CryptoPredictionController {
 
     private final CryptoPredictionLLMService cryptoPredictionService;
 
-    /**
-     * Генерирует новый прогноз для криптовалюты
-     */
     @PostMapping("/generate")
     public ResponseEntity<PredictionResponseDto> generatePrediction(@RequestBody PredictionRequestDto request) {
         try {
@@ -37,9 +34,6 @@ public class CryptoPredictionController {
         }
     }
 
-    /**
-     * Получает последний прогноз для криптовалюты
-     */
     @GetMapping("/latest/{symbol}")
     public ResponseEntity<CryptoPrediction> getLatestPrediction(@PathVariable String symbol) {
         try {
@@ -53,9 +47,6 @@ public class CryptoPredictionController {
         }
     }
 
-    /**
-     * Получает историю прогнозов для криптовалюты
-     */
     @GetMapping("/history/{symbol}")
     public ResponseEntity<List<CryptoPrediction>> getPredictionHistory(@PathVariable String symbol) {
         try {
@@ -68,9 +59,6 @@ public class CryptoPredictionController {
         }
     }
 
-    /**
-     * Быстрый прогноз для популярных криптовалют
-     */
     @GetMapping("/quick/{symbol}")
     public ResponseEntity<PredictionResponseDto> getQuickPrediction(
             @PathVariable String symbol,

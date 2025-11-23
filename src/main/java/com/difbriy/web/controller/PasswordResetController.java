@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class PasswordResetController {
     private final UserService userService;
 
-//    @PostMapping
-//    public ResponseEntity<?> resetPassword(@RequestBody @Valid PasswordResetRequestDto dto){
-//
-//    }
+    @PostMapping
+    public ResponseEntity<?> resetPassword(@RequestBody @Valid PasswordResetRequestDto dto){
+
+    }
 
 }

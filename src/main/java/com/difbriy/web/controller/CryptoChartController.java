@@ -41,10 +41,8 @@ public class CryptoChartController {
                 return ResponseEntity.notFound().build();
             }
 
-            // Получаем последние данные для текущих значений
             CryptoData latestData = cryptoService.getLatestCryptoData(symbol);
-            
-            // Преобразуем данные в формат для графика
+
             List<CryptoChartData.ChartPoint> chartPoints = historyData.stream()
                     .map(data -> new CryptoChartData.ChartPoint(
                             data.getTimestamp(),
@@ -76,9 +74,6 @@ public class CryptoChartController {
         }
     }
 
-    /**
-     * Получение всех доступных символов криптовалют
-     */
     @GetMapping("/symbols")
     public ResponseEntity<List<String>> getAllCryptoSymbols() {
         try {
@@ -90,9 +85,6 @@ public class CryptoChartController {
         }
     }
 
-    /**
-     * Получение последних данных для всех криптовалют
-     */
     @GetMapping("/latest")
     public ResponseEntity<List<CryptoData>> getLatestCryptoData() {
         try {
@@ -104,9 +96,6 @@ public class CryptoChartController {
         }
     }
 
-    /**
-     * Получение последних данных для конкретной криптовалюты
-     */
     @GetMapping("/latest/{symbol}")
     public ResponseEntity<CryptoData> getLatestCryptoData(@PathVariable String symbol) {
         try {
@@ -120,10 +109,6 @@ public class CryptoChartController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
-    /**
-     * Отправка обновленных данных через WebSocket
-     */
     @PostMapping("/update")
     public ResponseEntity<String> triggerChartUpdate(@RequestParam String symbol) {
         try {
@@ -143,9 +128,6 @@ public class CryptoChartController {
         }
     }
 
-    /**
-     * Получение статистики по криптовалюте
-     */
     @GetMapping("/stats/{symbol}")
     public ResponseEntity<Object> getCryptoStats(@PathVariable String symbol) {
         try {
@@ -154,11 +136,9 @@ public class CryptoChartController {
                 return ResponseEntity.notFound().build();
             }
 
-            // Получаем данные за разные периоды для статистики
             List<CryptoData> last24h = cryptoService.getCryptoHistory(symbol, "24h");
             List<CryptoData> last7d = cryptoService.getCryptoHistory(symbol, "7d");
 
-            // Вычисляем статистику
             BigDecimal minPrice24h = last24h.stream()
                     .map(CryptoData::getPrice)
                     .filter(price -> price != null)

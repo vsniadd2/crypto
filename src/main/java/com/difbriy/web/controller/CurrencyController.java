@@ -1,6 +1,8 @@
 package com.difbriy.web.controller;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,13 +24,8 @@ public class CurrencyController {
 
 
     @GetMapping("/currency")
-    public ResponseEntity<?> getCurrencyData() throws IOException {
+    public ResponseEntity<List<Map<String, Object>>> getCurrencyData() throws IOException {
         return cryptoService.fetchDataFromCoinGecko();
 
     }
-
-//    @GetMapping("/currency/{id}")
-//    public ResponseEntity<?> getCurrentById(@PathVariable Long id){
-//        return cryptoService.fetchSingleCoin(id);
-//    }
 }

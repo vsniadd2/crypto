@@ -60,7 +60,7 @@ public class UserService {
         user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
         userRepository.save(user);
         
-        String resetUrl = "http://localhost:8080/api/auth/reset-password?token=" + token;
+        String resetUrl = "http://localhost:8080/api/v1/reset-password/confirm?token=" + token;
         
         return PasswordResetResponseDto.builder()
                 .message("success")
@@ -76,7 +76,6 @@ public class UserService {
         User user = validateToken(confirmDto);
 
         user.setPassword(passwordEncoder.encode(confirmDto.newPassword()));
-        // Очищаем токен после использования (одноразовый)
         user.setResetToken(null);
         user.setResetTokenExpiry(null);
         userRepository.save(user);
@@ -85,9 +84,9 @@ public class UserService {
         return PasswordResetResponseDto.passwordChanged();
     }
 
-    //TODO
     public User findByResetToken(String token) {
-        return userRepository.findByResetToken(token).orElseThrow(() -> new RuntimeException("Токен не найден"));
+        return userRepository.findByResetToken(token)
+                .orElseThrow(() -> new InvalidResetTokenException("Token not found"));
     }
 
     @Transactional()
@@ -105,13 +104,12 @@ public class UserService {
     }
 
     @Async
-    public CompletableFuture<?> updateProfileAsync(Long userId, String username, String email) {
+    public CompletableFuture<UpdatedProfileResponseDto> updateProfileAsync(Long userId, String username, String email) {
         return CompletableFuture.supplyAsync(() -> updateProfile(userId, username, email));
     }
 
 
     private User validateToken(PasswordResetConfirmDto dto) {
-        // Проверка на пустой токен
         if (dto.token() == null || dto.token().trim().isEmpty()) {
             throw new InvalidResetTokenException("Token cannot be empty");
         }
@@ -119,12 +117,10 @@ public class UserService {
         User user = userRepository.findByResetToken(dto.token())
                 .orElseThrow(() -> new InvalidResetTokenException("Invalid reset token"));
 
-        // Проверка истечения токена
         if (user.getResetTokenExpiry() == null || user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
             throw new InvalidResetTokenException("The token has expired");
         }
 
-        // Правильное сравнение строк
         if (!dto.newPassword().equals(dto.confirmPassword())) {
             throw new InvalidResetTokenException("The passwords don't match");
         }

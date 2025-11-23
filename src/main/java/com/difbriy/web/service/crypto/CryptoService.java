@@ -81,7 +81,7 @@ public class CryptoService {
         }
     }
 
-    public ResponseEntity<?> fetchDataFromCoinGecko() throws IOException {
+    public ResponseEntity<List<Map<String, Object>>> fetchDataFromCoinGecko() throws IOException {
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> cachedData = (List<Map<String, Object>>) redisTemplate.opsForValue().get(ALL_COINS_CACHE_KEY);
         if (cachedData == null) {

@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -39,15 +40,14 @@ public class NewsController {
 
     @PostMapping(consumes = {"multipart/form-data"})
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createNews(
+    public ResponseEntity<NewsResponseDto> createNews(
             @RequestPart("news") String newsJson,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) throws IOException {
         NewsDto newsDto = objectMapper.readValue(newsJson, NewsDto.class);
-        
-        // Всегда устанавливаем текущее время сервера (игнорируем время с фронтенда)
+
         newsDto.setPublishedAt(LocalDateTime.now());
-        
+
         String imagePath = null;
         if (image != null && !image.isEmpty()) {
             String uploadDir = "uploads/news-images/";
@@ -55,7 +55,6 @@ public class NewsController {
             String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
             Path filePath = Paths.get(uploadDir, fileName);
             image.transferTo(filePath);
-            // Сохраняем только имя файла для корректного отображения
             imagePath = fileName;
         }
         NewsResponseDto savedNews = newsService.saveNews(newsDto, imagePath);
@@ -63,15 +62,15 @@ public class NewsController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getNewsList(@RequestParam(defaultValue = "0") int page,
-                                         @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<Page<NewsResponseDto>> getNewsList(@RequestParam(defaultValue = "0") int page,
+                                                             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<NewsResponseDto> newsPage = newsService.getNewsPage(pageable);
         return ResponseEntity.ok(newsPage);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getNewsById(@PathVariable Long id) {
+    public ResponseEntity<NewsResponseDto> getNewsById(@PathVariable Long id) {
         NewsResponseDto news = newsService.getNewsById(id);
         if (news == null) {
             return ResponseEntity.notFound().build();

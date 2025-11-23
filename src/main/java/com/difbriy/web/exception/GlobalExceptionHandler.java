@@ -17,6 +17,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import com.difbriy.web.exception.custom.InvalidResetTokenException;
 
 import java.util.Map;
 import java.util.Objects;
@@ -149,6 +150,16 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(SignatureExceptionDto.create(message, e.getClass().toString()));
+    }
+
+    @ExceptionHandler(InvalidResetTokenException.class)
+    public ResponseEntity<?> handlerInvalidResetTokenException(InvalidResetTokenException e) {
+        String message = e.getMessage();
+
+        log.error("Service unavailable due to InvalidResetTokenException: {}", message);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(InvalidResetTokenExceptionDto.create(message, e.getClass().toString()));
     }
 
 

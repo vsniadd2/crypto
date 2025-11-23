@@ -16,7 +16,7 @@ public record PasswordResetResponseDto(
     public static PasswordResetResponseDto success(String token, String resetUrl, LocalDateTime expiresAt) {
         return PasswordResetResponseDto.builder()
                 .success(true)
-                .message("Ссылка для сброса пароля успешно создана")
+                .message("Password reset link successfully created")
                 .resetToken(token)
                 .resetUrl(resetUrl)
                 .expiresAt(expiresAt)
@@ -33,7 +33,7 @@ public record PasswordResetResponseDto(
     public static PasswordResetResponseDto passwordChanged() {
         return PasswordResetResponseDto.builder()
                 .success(true)
-                .message("Пароль успешно изменен")
+                .message("Password changed successfully")
                 .build();
     }
 }

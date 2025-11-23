@@ -9,7 +9,6 @@ import com.difbriy.web.locallm.service.CryptoPredictionLLMService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
@@ -27,46 +26,6 @@ public class WebSocketController {
     private final CryptoService cryptoService;
     private final CryptoPredictionLLMService cryptoPredictionService;
     private final SimpMessagingTemplate messagingTemplate;
-
-    @MessageMapping("/connect")
-    @SendTo("/topic/connected")
-    public Map<String, Object> handleConnect(SimpMessageHeaderAccessor headerAccessor) {
-        String sessionId = headerAccessor.getSessionId();
-        log.info("Client manually connected via /app/connect: {}", sessionId);
-        
-        return Map.of(
-            "status", "CONNECTED",
-            "sessionId", sessionId,
-            "message", "✅ WebSocket ПОДКЛЮЧЕН успешно!",
-            "timestamp", System.currentTimeMillis()
-        );
-    }
-
-    @MessageMapping("/disconnect")
-    @SendTo("/topic/disconnected")
-    public Map<String, Object> handleDisconnect(SimpMessageHeaderAccessor headerAccessor) {
-        String sessionId = headerAccessor.getSessionId();
-        log.info("Client disconnected: {}", sessionId);
-        
-        return Map.of(
-            "status", "disconnected",
-            "sessionId", sessionId,
-            "message", "Client disconnected"
-        );
-    }
-
-    @MessageMapping("/ping")
-    @SendToUser("/topic/pong")
-    public Map<String, Object> handlePing(SimpMessageHeaderAccessor headerAccessor) {
-        String sessionId = headerAccessor.getSessionId();
-        log.debug("Ping received from session: {}", sessionId);
-        
-        return Map.of(
-            "type", "pong",
-            "timestamp", System.currentTimeMillis(),
-            "sessionId", sessionId
-        );
-    }
 
     @MessageMapping("/crypto/request")
     @SendToUser("/topic/crypto/response")
@@ -90,19 +49,6 @@ public class WebSocketController {
         log.info("Single crypto data requested for coin ID: {} by session: {}", coinId, sessionId);
 
         cryptoService.sendSingleCryptoData(coinId);
-    }
-
-    @MessageMapping("/news/request")
-    @SendToUser("/topic/news/response")
-    public Map<String, Object> handleNewsRequest(SimpMessageHeaderAccessor headerAccessor) {
-        String sessionId = headerAccessor.getSessionId();
-        log.info("News data requested by session: {}", sessionId);
-        
-        return Map.of(
-            "type", "news_request",
-            "message", "News data will be sent when available",
-            "sessionId", sessionId
-        );
     }
 
     @MessageMapping("/chart/request")
