@@ -1,6 +1,8 @@
 package com.difbriy.web.controller;
 
+import com.difbriy.web.dto.user.PasswordResetConfirmDto;
 import com.difbriy.web.dto.user.PasswordResetRequestDto;
+import com.difbriy.web.dto.user.PasswordResetResponseDto;
 import com.difbriy.web.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +19,18 @@ public class PasswordResetController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<?> resetPassword(@RequestBody @Valid PasswordResetRequestDto dto){
-
+    public ResponseEntity<PasswordResetResponseDto> requestPasswordReset(
+            @RequestBody @Valid PasswordResetRequestDto dto
+    ) {
+        PasswordResetResponseDto response = userService.generatePasswordResetToken(dto.email());
+        return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/confirm")
+    public ResponseEntity<PasswordResetResponseDto> confirmPasswordReset(
+            @RequestBody @Valid PasswordResetConfirmDto dto
+    ) {
+        PasswordResetResponseDto response = userService.resetPassword(dto);
+        return ResponseEntity.ok(response);
+    }
 }
