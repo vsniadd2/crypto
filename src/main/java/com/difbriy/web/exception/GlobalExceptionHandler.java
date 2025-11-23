@@ -166,7 +166,8 @@ public class GlobalExceptionHandler {
                         FieldError::getField,
                         fieldError -> Objects.requireNonNullElse(
                                 fieldError.getDefaultMessage(), "Invalid field"
-                        )
+                        ),
+                        (existing, replacement) -> existing // При дубликатах берем первое сообщение
                 ));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(MethodArgumentNotValidExceptionDto.create("Request validation failed", errors));

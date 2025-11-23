@@ -134,6 +134,7 @@ public class SecurityConfiguration {
             "/api/crypto/analysis/**",
             "/api/crypto/test-llm",
             "/api/predictions/**",
-            "/api/profile"
+            "/api/profile",
+            "/api/v1/favorite/**"
     };
 }
