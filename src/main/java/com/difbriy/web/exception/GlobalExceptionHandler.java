@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import com.difbriy.web.exception.custom.InvalidResetTokenException;
+import com.difbriy.web.exception.custom.AccessDeniedException;
+import com.difbriy.web.exception.custom.AuthenticationEntryPointException;
+import com.difbriy.web.exception.custom.LogoutHandlerException;
 
 import java.util.Map;
 import java.util.Objects;
@@ -160,6 +163,36 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(InvalidResetTokenExceptionDto.create(message, e.getClass().toString()));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handlerAccessDeniedException(AccessDeniedException e) {
+        String message = e.getMessage();
+
+        log.error("Service unavailable due to AccessDeniedException: {}", message);
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(AccessDeniedExceptionDto.create(message, e.getClass().toString()));
+    }
+
+    @ExceptionHandler(AuthenticationEntryPointException.class)
+    public ResponseEntity<?> handlerAuthenticationEntryPointException(AuthenticationEntryPointException e) {
+        String message = e.getMessage();
+
+        log.error("Service unavailable due to AuthenticationEntryPointException: {}", message);
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(AuthenticationEntryPointExceptionDto.create(message, e.getClass().toString()));
+    }
+
+    @ExceptionHandler(LogoutHandlerException.class)
+    public ResponseEntity<?> handlerLogoutHandlerException(LogoutHandlerException e) {
+        String message = e.getMessage();
+
+        log.error("Service unavailable due to LogoutHandlerException: {}", message);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(LogoutHandlerExceptionDto.create(message, e.getClass().toString()));
     }
 
 

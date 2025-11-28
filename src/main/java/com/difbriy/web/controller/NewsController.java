@@ -38,14 +38,27 @@ public class NewsController {
         this.objectMapper = objectMapper;
     }
 
-    @PostMapping(consumes = {"multipart/form-data"})
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<NewsResponseDto> createNews(
+    public ResponseEntity<NewsResponseDto> createNewsMultipart(
             @RequestPart("news") String newsJson,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) throws IOException {
         NewsDto newsDto = objectMapper.readValue(newsJson, NewsDto.class);
+        NewsResponseDto savedNews = processNews(newsDto, image);
+        return ResponseEntity.ok(savedNews);
+    }
 
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<NewsResponseDto> createNewsJson(
+            @RequestBody NewsDto newsDto
+    ) throws IOException {
+        NewsResponseDto savedNews = processNews(newsDto, null);
+        return ResponseEntity.ok(savedNews);
+    }
+
+    private NewsResponseDto processNews(NewsDto newsDto, MultipartFile image) throws IOException {
         newsDto.setPublishedAt(LocalDateTime.now());
 
         String imagePath = null;
@@ -57,8 +70,7 @@ public class NewsController {
             image.transferTo(filePath);
             imagePath = fileName;
         }
-        NewsResponseDto savedNews = newsService.saveNews(newsDto, imagePath);
-        return ResponseEntity.ok(savedNews);
+        return newsService.saveNews(newsDto, imagePath);
     }
 
     @GetMapping

@@ -1,5 +1,6 @@
 package com.difbriy.web.handler;
 
+import com.difbriy.web.exception.custom.LogoutHandlerException;
 import com.difbriy.web.token.TokenRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,29 +22,36 @@ public class CustomLogoutHandler implements LogoutHandler, LogoutSuccessHandler 
 
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        try {
+            final String authHeader = request.getHeader("Authorization");
+            final String jwt;
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return;
+            }
+            jwt = authHeader.substring(7);
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return;
-        }
-        jwt = authHeader.substring(7);
-
-        var storedToken = tokenRepository.findByToken(jwt)
-                .orElse(null);
-        if (storedToken != null) {
-            storedToken.setExpired(true);
-            storedToken.setRevoked(true);
-            tokenRepository.save(storedToken);
-            SecurityContextHolder.clearContext();
+            var storedToken = tokenRepository.findByToken(jwt)
+                    .orElse(null);
+            if (storedToken != null) {
+                storedToken.setExpired(true);
+                storedToken.setRevoked(true);
+                tokenRepository.save(storedToken);
+                SecurityContextHolder.clearContext();
+            }
+        } catch (Exception e) {
+            throw new LogoutHandlerException("Failed to process logout: " + e.getMessage());
         }
     }
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType("application/json");
-        String body = "{\"message\": \"Logout successful\"}";
-        response.getWriter().write(body);
+        try {
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType("application/json");
+            String body = "{\"message\": \"Logout successful\"}";
+            response.getWriter().write(body);
+        } catch (IOException e) {
+            throw new LogoutHandlerException("Failed to write logout success response: " + e.getMessage());
+        }
     }
 }

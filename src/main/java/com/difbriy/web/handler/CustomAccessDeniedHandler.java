@@ -12,15 +12,19 @@ import java.io.IOException;
 @Component
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) {
+        try {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
 
-        String body = String.format(
-                "{\"error\": \"forbidden\", \"message\": \"%s\"}",
-                accessDeniedException.getMessage()
-        );
+            String body = String.format(
+                    "{\"error\": \"forbidden\", \"message\": \"%s\"}",
+                    accessDeniedException.getMessage()
+            );
 
-        response.getWriter().write(body);
+            response.getWriter().write(body);
+        } catch (IOException e) {
+            throw new AccessDeniedException("Failed to write access denied response: " + e.getMessage());
+        }
     }
 }
