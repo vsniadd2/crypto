@@ -1,4 +1,4 @@
-package com.difbriy.web.controller;
+package com.difbriy.web.controller.crypto;
 
 import java.io.IOException;
 import java.util.List;

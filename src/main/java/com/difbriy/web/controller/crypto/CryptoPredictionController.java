@@ -1,4 +1,4 @@
-package com.difbriy.web.controller;
+package com.difbriy.web.controller.crypto;
 
 import com.difbriy.web.dto.crypto.PredictionRequestDto;
 import com.difbriy.web.dto.crypto.PredictionResponseDto;

@@ -1,9 +1,8 @@
-package com.difbriy.web.controller;
+package com.difbriy.web.controller.favorite;
 
 import com.difbriy.web.dto.favorite.AddFavoriteRequest;
 import com.difbriy.web.dto.favorite.FavoriteDto;
 import com.difbriy.web.dto.favorite.FavoriteStatusDto;
-import com.difbriy.web.entity.Favorite;
 import com.difbriy.web.entity.User;
 import com.difbriy.web.service.favorite.FavoriteService;
 import com.difbriy.web.service.user.UserService;

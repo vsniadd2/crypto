@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.difbriy.web.roles.Role.ROLE_ADMIN;
 import static com.difbriy.web.roles.Role.ROLE_USER;
 
 @Component

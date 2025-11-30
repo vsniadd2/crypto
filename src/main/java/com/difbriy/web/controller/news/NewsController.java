@@ -1,4 +1,4 @@
-package com.difbriy.web.controller;
+package com.difbriy.web.controller.news;
 
 import com.difbriy.web.dto.news.NewsDto;
 import com.difbriy.web.dto.news.NewsResponseDto;

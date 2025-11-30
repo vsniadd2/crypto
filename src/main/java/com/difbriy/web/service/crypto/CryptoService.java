@@ -52,7 +52,9 @@ public class CryptoService {
             List<Map<String, Object>> data = fetchDataFromCoinGeckoInternal();
             saveCryptoDataToDatabase(data);
             messagingTemplate.convertAndSend("/topic/crypto", data);
-            log.info("Data updated, saved to database and sent through WebSocket");
+            // Отправка данных в lifetime режиме реального времени
+            messagingTemplate.convertAndSend("/topic/crypto/realtime", data);
+            log.info("Data updated, saved to database and sent through WebSocket (including realtime lifetime mode)");
         } catch (Exception e) {
             log.error("Error in scheduled update", e);
         }
@@ -65,6 +67,27 @@ public class CryptoService {
             log.info("Crypto data sent on demand through WebSocket");
         } catch (Exception e) {
             log.error("Error sending crypto data on demand", e);
+        }
+    }
+
+    public void sendRealtimeCryptoData() {
+        try {
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> cachedData = (List<Map<String, Object>>) redisTemplate.opsForValue().get(ALL_COINS_CACHE_KEY);
+            List<Map<String, Object>> data;
+            
+            if (cachedData != null && !cachedData.isEmpty()) {
+                data = cachedData;
+                log.info("Sending cached crypto data to realtime subscribers");
+            } else {
+                data = fetchDataFromCoinGeckoInternal();
+                log.info("Fetched fresh crypto data and sending to realtime subscribers");
+            }
+            
+            messagingTemplate.convertAndSend("/topic/crypto/realtime", data);
+            log.info("Crypto data sent to realtime lifetime subscribers ({} coins)", data.size());
+        } catch (Exception e) {
+            log.error("Error sending realtime crypto data", e);
         }
     }
 

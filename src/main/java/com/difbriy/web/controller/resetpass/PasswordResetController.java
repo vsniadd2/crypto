@@ -1,4 +1,4 @@
-package com.difbriy.web.controller;
+package com.difbriy.web.controller.resetpass;
 
 import com.difbriy.web.dto.user.PasswordResetConfirmDto;
 import com.difbriy.web.dto.user.PasswordResetRequestDto;

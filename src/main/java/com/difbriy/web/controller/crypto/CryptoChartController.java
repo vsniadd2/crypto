@@ -1,4 +1,4 @@
-package com.difbriy.web.controller;
+package com.difbriy.web.controller.crypto;
 
 import com.difbriy.web.dto.crypto.CryptoChartData;
 import com.difbriy.web.entity.CryptoData;

@@ -1,4 +1,4 @@
-package com.difbriy.web.controller;
+package com.difbriy.web.controller.profile;
 
 import com.difbriy.web.dto.user.ProfileDto;
 import com.difbriy.web.dto.user.UpdateProfileRequestDto;
