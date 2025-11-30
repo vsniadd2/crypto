@@ -4,6 +4,7 @@ import com.difbriy.web.dto.news.NewsDto;
 import com.difbriy.web.dto.news.NewsResponseDto;
 import com.difbriy.web.entity.News;
 import com.difbriy.web.repository.NewsRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,14 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class NewsService {
     private final NewsRepository newsRepository;
 
-    @Autowired
-    public NewsService(NewsRepository newsRepository) {
-        this.newsRepository = newsRepository;
-    }
 
     public NewsResponseDto saveNews(NewsDto newsDto, String imagePath) {
 

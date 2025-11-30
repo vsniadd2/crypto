@@ -1,6 +1,7 @@
 package com.difbriy.web.dto.news;
 
 import com.difbriy.web.entity.News;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@Builder
 public class NewsResponseDto {
     private Long id;
     private String title;
@@ -28,8 +30,7 @@ public class NewsResponseDto {
         this.category = news.getCategory();
         this.author = news.getAuthor();
         this.publishedAt = news.getPublishedAt();
-        
-        // Формируем правильный URL для изображения
+
         if (news.getImagePath() != null && !news.getImagePath().isEmpty()) {
             this.imageUrl = "/api/news/image/" + news.getImagePath();
         } else {
