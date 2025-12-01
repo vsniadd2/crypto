@@ -1,15 +1,15 @@
 package com.difbriy.web.dto.news;
 
 import com.difbriy.web.entity.News;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class NewsResponseDto {
     private Long id;
     private String title;
@@ -20,7 +20,6 @@ public class NewsResponseDto {
     private LocalDateTime publishedAt;
     private String imageUrl;
 
-    public NewsResponseDto() {}
 
     public NewsResponseDto(News news) {
         this.id = news.getId();

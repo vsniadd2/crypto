@@ -26,58 +26,58 @@ public class CryptoAnalysis {
     @Column(nullable = false)
     private String name;
     
-    @Column(precision = 30, scale = 8)
+    @Column(name = "current_price", precision = 30, scale = 8)
     private BigDecimal currentPrice;
     
-    @Column(precision = 30, scale = 8)
+    @Column(name = "market_cap", precision = 30, scale = 8)
     private BigDecimal marketCap;
     
-    @Column(precision = 30, scale = 8)
+    @Column(name = "volume_24h", precision = 30, scale = 8)
     private BigDecimal volume24h;
     
-    @Column(precision = 10, scale = 4)
+    @Column(name = "price_change_24h", precision = 10, scale = 4)
     private BigDecimal priceChange24h;
     
-    @Column(precision = 10, scale = 4)
+    @Column(name = "price_change_percent_24h", precision = 10, scale = 4)
     private BigDecimal priceChangePercent24h;
     
     @Column(precision = 10, scale = 4)
     private BigDecimal rsi;
     
-    @Column(precision = 10, scale = 4)
+    @Column(name = "sma_20", precision = 10, scale = 4)
     private BigDecimal sma20;
     
-    @Column(precision = 10, scale = 4)
+    @Column(name = "sma_50", precision = 10, scale = 4)
     private BigDecimal sma50;
     
-    @Column(precision = 10, scale = 4)
+    @Column(name = "sma_200", precision = 10, scale = 4)
     private BigDecimal sma200;
     
     @Column(precision = 10, scale = 4)
     private BigDecimal volatility;
     
-    @Column(precision = 10, scale = 4)
+    @Column(name = "support_level", precision = 10, scale = 4)
     private BigDecimal supportLevel;
     
-    @Column(precision = 10, scale = 4)
+    @Column(name = "resistance_level", precision = 10, scale = 4)
     private BigDecimal resistanceLevel;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "technical_analysis", columnDefinition = "TEXT")
     private String technicalAnalysis;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "fundamental_analysis", columnDefinition = "TEXT")
     private String fundamentalAnalysis;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "market_sentiment", columnDefinition = "TEXT")
     private String marketSentiment;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "llm_analysis", columnDefinition = "TEXT")
     private String llmAnalysis;
     
-    @Column(nullable = false)
+    @Column(name = "analysis_date", nullable = false)
     private LocalDateTime analysisDate;
     
-    @Column(nullable = false)
+    @Column(name = "analysis_type", nullable = false)
     private String analysisType; // "ANALYSIS" or "FORECAST"
     
     @OneToMany(mappedBy = "analysis", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

@@ -23,34 +23,34 @@ public class CryptoForecast {
     @JoinColumn(name = "analysis_id", nullable = false)
     private CryptoAnalysis analysis;
     
-    @Column(nullable = false)
+    @Column(name = "forecast_period", nullable = false)
     private String forecastPeriod; // "1_MONTH", "6_MONTHS", "1_YEAR"
     
-    @Column(precision = 30, scale = 8)
+    @Column(name = "predicted_price", precision = 30, scale = 8)
     private BigDecimal predictedPrice;
     
-    @Column(precision = 10, scale = 4)
+    @Column(name = "price_change_percent", precision = 10, scale = 4)
     private BigDecimal priceChangePercent;
     
     @Column(precision = 10, scale = 4)
     private BigDecimal confidence;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "forecast_reasoning", columnDefinition = "TEXT")
     private String forecastReasoning;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "risk_factors", columnDefinition = "TEXT")
     private String riskFactors;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "market_conditions", columnDefinition = "TEXT")
     private String marketConditions;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "technical_indicators", columnDefinition = "TEXT")
     private String technicalIndicators;
     
-    @Column(nullable = false)
+    @Column(name = "forecast_date", nullable = false)
     private LocalDateTime forecastDate;
     
-    @Column(nullable = false)
+    @Column(name = "target_date", nullable = false)
     private LocalDateTime targetDate;
     
     @PrePersist
