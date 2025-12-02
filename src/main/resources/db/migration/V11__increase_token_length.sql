@@ -1,3 +1,0 @@
-ALTER TABLE token
-    ALTER COLUMN token TYPE VARCHAR(1024);
-

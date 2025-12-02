@@ -125,7 +125,8 @@ public class SecurityConfiguration {
             "/websocket/**",
             "/stomp/**",
             "/api/crypto/symbols",
-            "/api/crypto/health"
+            "/api/crypto/health",
+            "/actuator/**"
     };
 
     private static final String[] AUTHENTICATED_URL = {

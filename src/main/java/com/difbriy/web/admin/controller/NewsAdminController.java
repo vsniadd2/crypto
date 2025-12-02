@@ -33,7 +33,7 @@ public class NewsAdminController {
         NewsResponseDto savedNews = processNews(newsDto, image);
         return ResponseEntity.ok(savedNews);
     }
-
+//f
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<NewsResponseDto> createNewsJson(
             @Valid @RequestBody NewsDto newsDto
