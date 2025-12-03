@@ -25,9 +25,6 @@ public class AuthenticationController {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtService jwtService;
 
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
     @PostMapping("/registration")
     public CompletableFuture<ResponseEntity<?>> registration(@Valid @RequestBody RegistrationRequest request) {
         return authenticationService.registerAsync(request)

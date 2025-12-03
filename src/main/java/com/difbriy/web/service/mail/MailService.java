@@ -2,6 +2,8 @@ package com.difbriy.web.service.mail;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -14,6 +16,9 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class MailService {
     private final JavaMailSender mailSender;
+    
+    @Value("${spring.mail.username}")
+    private String fromEmail;
     private static final String MAIL_SUBJECT_TEXT =
             """
                     Здравствуйте!
@@ -30,17 +35,20 @@ public class MailService {
     public CompletableFuture<Void> sendWelcomeEmailAsync(String to) {
         return CompletableFuture.runAsync(() -> {
             try {
+                log.info("Attempting to send welcome email to: {}", to);
                 SimpleMailMessage mailMessage = new SimpleMailMessage();
+                mailMessage.setFrom(fromEmail);
                 mailMessage.setTo(to);
-                mailMessage.setSubject(MAIL_SUBJECT_TEXT);
+                mailMessage.setSubject(MAIL_SUBJECT_TEXT.trim());
                 mailMessage.setText(MAIL_TEXT);
 
                 mailSender.send(mailMessage);
+                log.info("Welcome email successfully sent to: {}", to);
             } catch (MailException e) {
-                log.error("Failed to send welcome email to {}:{}", to, e.getMessage());
+                log.error("Failed to send welcome email to {}: {}", to, e.getMessage(), e);
+            } catch (Exception e) {
+                log.error("Unexpected error while sending welcome email to {}: {}", to, e.getMessage(), e);
             }
         });
-
-
     }
 }
