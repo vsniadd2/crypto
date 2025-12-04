@@ -3,6 +3,7 @@ package com.difbriy.web.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 
@@ -12,25 +13,24 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class News {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    Long id;
     @NotBlank(message = "The field must not be empty")
-    private String title;
+    String title;
     @NotBlank(message = "The field must not be empty")
-    private String description;
+    String description;
     @Column(columnDefinition = "TEXT")
     @NotBlank(message = "The field must not be empty")
-    private String content;
+    String content;
     @NotBlank(message = "The field must not be empty")
-    private String category;
+    String category;
     @NotBlank(message = "The field must not be empty")
-    private String author;
-    private LocalDateTime publishedAt;
-    private String imagePath;
-
+    String author;
+    LocalDateTime publishedAt;
+    String imagePath;
 
 }

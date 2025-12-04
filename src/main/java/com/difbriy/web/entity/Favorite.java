@@ -2,6 +2,7 @@ package com.difbriy.web.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -12,19 +13,20 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
 public class Favorite {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
 
     @Column(name = "user_id")
-    private Long userId;
+    Long userId;
 
     @Column(name = "coin_id")
-    private String coinId;
+    String coinId;
 
     @Column(name = "created_at")
     @CreationTimestamp
-    private LocalDateTime localDateTime;
+    LocalDateTime localDateTime;
 }

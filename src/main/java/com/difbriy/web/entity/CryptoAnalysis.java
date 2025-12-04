@@ -1,9 +1,9 @@
 package com.difbriy.web.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -11,80 +11,104 @@ import java.util.List;
 
 @Entity
 @Table(name = "crypto_analysis")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class CryptoAnalysis {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
+    Long id;
+
     @Column(nullable = false)
-    private String symbol;
-    
+    String symbol;
+
     @Column(nullable = false)
-    private String name;
-    
+    String name;
+
     @Column(name = "current_price", precision = 30, scale = 8)
-    private BigDecimal currentPrice;
-    
+    BigDecimal currentPrice;
+
     @Column(name = "market_cap", precision = 30, scale = 8)
-    private BigDecimal marketCap;
-    
+    BigDecimal marketCap;
+
     @Column(name = "volume_24h", precision = 30, scale = 8)
-    private BigDecimal volume24h;
-    
+    BigDecimal volume24h;
+
     @Column(name = "price_change_24h", precision = 10, scale = 4)
-    private BigDecimal priceChange24h;
-    
+    BigDecimal priceChange24h;
+
     @Column(name = "price_change_percent_24h", precision = 10, scale = 4)
-    private BigDecimal priceChangePercent24h;
-    
+    BigDecimal priceChangePercent24h;
+
     @Column(precision = 10, scale = 4)
-    private BigDecimal rsi;
-    
+    BigDecimal rsi;
+
     @Column(name = "sma_20", precision = 10, scale = 4)
-    private BigDecimal sma20;
-    
+    BigDecimal sma20;
+
     @Column(name = "sma_50", precision = 10, scale = 4)
-    private BigDecimal sma50;
-    
+    BigDecimal sma50;
+
     @Column(name = "sma_200", precision = 10, scale = 4)
-    private BigDecimal sma200;
-    
+    BigDecimal sma200;
+
     @Column(precision = 10, scale = 4)
-    private BigDecimal volatility;
-    
+    BigDecimal volatility;
+
     @Column(name = "support_level", precision = 10, scale = 4)
-    private BigDecimal supportLevel;
-    
+    BigDecimal supportLevel;
+
     @Column(name = "resistance_level", precision = 10, scale = 4)
-    private BigDecimal resistanceLevel;
-    
+    BigDecimal resistanceLevel;
+
     @Column(name = "technical_analysis", columnDefinition = "TEXT")
-    private String technicalAnalysis;
-    
+    String technicalAnalysis;
+
     @Column(name = "fundamental_analysis", columnDefinition = "TEXT")
-    private String fundamentalAnalysis;
-    
+    String fundamentalAnalysis;
+
     @Column(name = "market_sentiment", columnDefinition = "TEXT")
-    private String marketSentiment;
-    
+    String marketSentiment;
+
     @Column(name = "llm_analysis", columnDefinition = "TEXT")
-    private String llmAnalysis;
-    
+    String llmAnalysis;
+
     @Column(name = "analysis_date", nullable = false)
-    private LocalDateTime analysisDate;
-    
+    @CreationTimestamp
+    LocalDateTime analysisDate;
+
     @Column(name = "analysis_type", nullable = false)
-    private String analysisType; // "ANALYSIS" or "FORECAST"
-    
+    String analysisType; // "ANALYSIS" or "FORECAST"
+
     @OneToMany(mappedBy = "analysis", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<CryptoForecast> forecasts;
-    
-    @PrePersist
-    protected void onCreate() {
-        analysisDate = LocalDateTime.now();
+    List<CryptoForecast> forecasts;
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" +
+                "id = " + id + ", " +
+                "symbol = " + symbol + ", " +
+                "name = " + name + ", " +
+                "currentPrice = " + currentPrice + ", " +
+                "marketCap = " + marketCap + ", " +
+                "volume24h = " + volume24h + ", " +
+                "priceChange24h = " + priceChange24h + ", " +
+                "priceChangePercent24h = " + priceChangePercent24h + ", " +
+                "rsi = " + rsi + ", " +
+                "sma20 = " + sma20 + ", " +
+                "sma50 = " + sma50 + ", " +
+                "sma200 = " + sma200 + ", " +
+                "volatility = " + volatility + ", " +
+                "supportLevel = " + supportLevel + ", " +
+                "resistanceLevel = " + resistanceLevel + ", " +
+                "technicalAnalysis = " + technicalAnalysis + ", " +
+                "fundamentalAnalysis = " + fundamentalAnalysis + ", " +
+                "marketSentiment = " + marketSentiment + ", " +
+                "llmAnalysis = " + llmAnalysis + ", " +
+                "analysisDate = " + analysisDate + ", " +
+                "analysisType = " + analysisType + ")";
     }
 }
