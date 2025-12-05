@@ -7,25 +7,38 @@ import com.difbriy.web.mapper.ContactMapper;
 import com.difbriy.web.repository.ContactRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+
 @Service
-@RequiredArgsConstructor
+
 @Slf4j
 @Transactional
 public class ContactService {
     private final ContactRepository contactRepository;
     private final ContactMapper mapper;
+    private final Executor executor;
 
-    public ContactDto saveContact(ContactRequest request) {
-        log.info("Start saving contact: {}", request);
+    public ContactService(ContactRepository contactRepository, ContactMapper mapper, @Qualifier("taskExecutor") Executor executor) {
+        this.contactRepository = contactRepository;
+        this.mapper = mapper;
+        this.executor = executor;
+    }
 
-        Contact contact = mapper.toEntity(request);
-        contactRepository.save(contact);
+    public CompletableFuture<ContactDto> saveContact(ContactRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("Start saving contact: {}", request);
 
-        log.info("Contact saved successfully with id={}", contact.getId());
-        return mapper.toDto(contact);
+            Contact contact = mapper.toEntity(request);
+            contactRepository.save(contact);
+
+            log.info("Contact saved successfully with id={}", contact.getId());
+            return mapper.toDto(contact);
+        }, executor);
     }
 
     @Transactional(readOnly = true)

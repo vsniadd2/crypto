@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.concurrent.CompletableFuture;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/contacts")
@@ -19,8 +21,8 @@ public class ContactController {
     private final ContactService contactService;
 
     @PostMapping
-    public ResponseEntity<ContactDto> saveContact(@Valid @RequestBody ContactRequest request) {
-        ContactDto response = contactService.saveContact(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public CompletableFuture<ResponseEntity<ContactDto>> saveContact(@Valid @RequestBody ContactRequest request) {
+        return contactService.saveContact(request)
+                .thenApply(ResponseEntity::ok);
     }
 }

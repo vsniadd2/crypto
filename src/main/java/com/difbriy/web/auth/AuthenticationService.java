@@ -24,6 +24,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +38,7 @@ public class AuthenticationService {
     private final UserMapper userMapper;
     private final TokenRepository tokenRepository;
     private final MailService mailService;
+    private Executor executor;
 
     @Transactional
     public AuthenticationResponse register(RegistrationRequest request) {
@@ -73,7 +75,7 @@ public class AuthenticationService {
 
     @Async
     public CompletableFuture<AuthenticationResponse> registerAsync(RegistrationRequest request) {
-        return CompletableFuture.supplyAsync(() -> register(request));
+        return CompletableFuture.supplyAsync(() -> register(request),executor);
     }
 
     @Transactional
@@ -102,7 +104,7 @@ public class AuthenticationService {
 
     @Async
     public CompletableFuture<AuthenticationResponse> authenticateAsync(AuthenticationRequest authenticationRequest) {
-        return CompletableFuture.supplyAsync(() -> authenticate(authenticationRequest));
+        return CompletableFuture.supplyAsync(() -> authenticate(authenticationRequest),executor);
     }
 
 
