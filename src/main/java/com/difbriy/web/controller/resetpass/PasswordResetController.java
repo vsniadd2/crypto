@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.concurrent.CompletableFuture;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/reset-password")
@@ -19,18 +21,18 @@ public class PasswordResetController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<PasswordResetResponseDto> requestPasswordReset(
+    public CompletableFuture<ResponseEntity<PasswordResetResponseDto>> requestPasswordReset(
             @RequestBody @Valid PasswordResetRequestDto dto
     ) {
-        PasswordResetResponseDto response = userService.generatePasswordResetToken(dto.email());
-        return ResponseEntity.ok(response);
+        return userService.generatePasswordResetToken(dto.email())
+                .thenApply(ResponseEntity::ok);
     }
 
     @PostMapping("/confirm")
-    public ResponseEntity<PasswordResetResponseDto> confirmPasswordReset(
+    public CompletableFuture<ResponseEntity<PasswordResetResponseDto>> confirmPasswordReset(
             @RequestBody @Valid PasswordResetConfirmDto dto
     ) {
-        PasswordResetResponseDto response = userService.resetPassword(dto);
-        return ResponseEntity.ok(response);
+        return userService.resetPassword(dto)
+                .thenApply(ResponseEntity::ok);
     }
 }

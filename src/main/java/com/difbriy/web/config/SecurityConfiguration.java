@@ -112,7 +112,6 @@ public class SecurityConfiguration {
             "/api/v1/auth/authenticate",
             "/api/v1/auth/registration",
             "/api/v1/auth/refresh-token",
-            "/api/currency",
             "/api/news",
             "/api/news/**",
             "/api/websocket/**",
@@ -135,6 +134,7 @@ public class SecurityConfiguration {
             "/api/crypto/test-llm",
             "/api/predictions/**",
             "/api/profile",
-            "/api/v1/favorite/**"
+            "/api/v1/favorite/**",
+            "/api/currency",
     };
 }

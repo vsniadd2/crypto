@@ -29,9 +29,11 @@ public class FavoriteController {
     @GetMapping
     public CompletableFuture<ResponseEntity<List<FavoriteDto>>> getUserFavoritesCoins(Authentication authentication) {
         log.info("Getting list of favorite coins for user");
-        Long userId = getUserIdFromAuthentication(authentication);
-        log.debug("User ID extracted from authentication: {}", userId);
-        return favoriteService.getUserFavorites(userId)
+        return getUserIdFromAuthentication(authentication)
+                .thenCompose(userId -> {
+                    log.debug("User ID extracted from authentication: {}", userId);
+                    return favoriteService.getUserFavorites(userId);
+                })
                 .thenApply(ResponseEntity::ok);
     }
 
@@ -41,13 +43,14 @@ public class FavoriteController {
             Authentication authentication
     ) {
         log.info("Adding coin to favorites. Coin ID: {}", request.coinId());
-        Long userId = getUserIdFromAuthentication(authentication);
-        log.debug("User ID extracted from authentication: {}", userId);
-
-        return favoriteService.addFavorite(userId, request.coinId())
+        return getUserIdFromAuthentication(authentication)
+                .thenCompose(userId -> {
+                    log.debug("User ID extracted from authentication: {}", userId);
+                    return favoriteService.addFavorite(userId, request.coinId());
+                })
                 .thenApply(ResponseEntity::ok)
                 .exceptionally(ex -> {
-                    log.warn("Error adding coin to favorites. User ID: {}, Coin ID: {}, Error: {}");
+                    log.warn("Error adding coin to favorites. Coin ID: {}, Error: {}", request.coinId(), ex.getMessage());
                     throw new IllegalArgumentException(ex.getMessage(), ex);
                 });
     }
@@ -57,14 +60,15 @@ public class FavoriteController {
             @PathVariable String coinId,
             Authentication authentication) {
         log.info("Removing coin from favorites. Coin ID: {}", coinId);
-        Long userId = getUserIdFromAuthentication(authentication);
-        log.debug("User ID extracted from authentication: {}", userId);
-
-        return favoriteService.removeFavorite(userId, coinId)
-                .thenApply(v -> {
-                    log.info("Coin with ID {} successfully removed from favorites for user with ID: {}",
-                            coinId, userId);
-                    return ResponseEntity.noContent().build();
+        return getUserIdFromAuthentication(authentication)
+                .thenCompose(userId -> {
+                    log.debug("User ID extracted from authentication: {}", userId);
+                    return favoriteService.removeFavorite(userId, coinId)
+                            .thenApply(v -> {
+                                log.info("Coin with ID {} successfully removed from favorites for user with ID: {}",
+                                        coinId, userId);
+                                return ResponseEntity.noContent().build();
+                            });
                 });
     }
 
@@ -75,26 +79,28 @@ public class FavoriteController {
             @PathVariable String coinId,
             Authentication authentication) {
         log.debug("Checking favorite status for coin. Coin ID: {}", coinId);
-        Long userId = getUserIdFromAuthentication(authentication);
-        log.debug("User ID extracted from authentication: {}", userId);
-
-        return favoriteService.isFavorite(userId, coinId)
-                .thenApply(isFavorite -> {
-                    log.debug("Favorite status for coin with ID {} and user with ID {}: {}",
-                            coinId, userId, isFavorite);
-                    FavoriteStatusDto status = new FavoriteStatusDto(isFavorite, coinId);
-                    return ResponseEntity.ok(status);
+        return getUserIdFromAuthentication(authentication)
+                .thenCompose(userId -> {
+                    log.debug("User ID extracted from authentication: {}", userId);
+                    return favoriteService.isFavorite(userId, coinId)
+                            .thenApply(isFavorite -> {
+                                log.debug("Favorite status for coin with ID {} and user with ID {}: {}",
+                                        coinId, userId, isFavorite);
+                                FavoriteStatusDto status = new FavoriteStatusDto(isFavorite, coinId);
+                                return ResponseEntity.ok(status);
+                            });
                 });
     }
 
 
-    private Long getUserIdFromAuthentication(Authentication authentication) {
+    private CompletableFuture<Long> getUserIdFromAuthentication(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String email = userDetails.getUsername();
-        User user = userService.findByEmail(email)
-                .orElseThrow(() ->
-                        new UsernameNotFoundException(String.format("User not found with email: %s", email))
-                );
-        return user.getId();
+        return userService.findByEmail(email)
+                .thenApply(userOpt -> userOpt
+                        .orElseThrow(() ->
+                                new UsernameNotFoundException(String.format("User not found with email: %s", email))
+                        ))
+                .thenApply(User::getId);
     }
 }
