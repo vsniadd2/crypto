@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -20,11 +22,14 @@ public class NewsAdminService {
     private final NewsService newsService;
     private final NewsMapper mapper;
 
+    @Transactional
+    @SuppressWarnings("unused")
     public NewsResponseDto deleteNewsById(Long newsId) {
         News news = newsRepository.findById(newsId)
                 .orElseThrow(() -> new IllegalArgumentException(String.format("News not found with id: %d", newsId)));
         NewsResponseDto response = mapper.toDto(news);
         newsRepository.deleteById(newsId);
+        log.info("News with id {} has been deleted successfully", newsId);
         return response;
     }
 
@@ -50,15 +55,22 @@ public class NewsAdminService {
         return mapper.toDto(savedNews);
     }
 
-    public NewsResponseDto saveNews(NewsDto newsDto, String imagePath) {
+    public CompletableFuture<NewsResponseDto> saveNews(NewsDto newsDto, String imagePath) {
         log.info("Creating new news with title: {}", newsDto.getTitle());
-        NewsResponseDto savedNews = newsService.saveNews(newsDto, imagePath);
-        log.info("News with id {} has been created successfully", savedNews.getId());
-        return savedNews;
+        return newsService.saveNews(newsDto, imagePath)
+                .thenApply(savedNews -> {
+                    if (savedNews != null && savedNews.getId() != null) {
+                        log.info("News with id {} has been created successfully", savedNews.getId());
+                    } else {
+                        log.warn("News created but id is null");
+                    }
+                    return savedNews;
+                });
     }
 
 
     @Transactional(readOnly = true)
+    @SuppressWarnings("unused")
     public Long countNews() {
         long count = newsRepository.count();
         log.info("Total news in system: {}", count);

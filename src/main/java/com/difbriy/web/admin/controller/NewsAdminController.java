@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,24 +26,26 @@ public class NewsAdminController {
     private final ObjectMapper objectMapper;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<NewsResponseDto> createNewsMultipart(
+    public CompletableFuture<ResponseEntity<NewsResponseDto>> createNewsMultipart(
             @RequestPart("news") String newsJson,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) throws IOException {
         NewsDto newsDto = objectMapper.readValue(newsJson, NewsDto.class);
-        NewsResponseDto savedNews = processNews(newsDto, image);
-        return ResponseEntity.ok(savedNews);
-    }
-//f
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<NewsResponseDto> createNewsJson(
-            @Valid @RequestBody NewsDto newsDto
-    ) throws IOException {
-        NewsResponseDto savedNews = processNews(newsDto, null);
-        return ResponseEntity.ok(savedNews);
+        return processNews(newsDto, image)
+                .thenApply(ResponseEntity::ok);
     }
 
-    private NewsResponseDto processNews(NewsDto newsDto, MultipartFile image) throws IOException {
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public CompletableFuture<ResponseEntity<NewsResponseDto>> createNewsJson(
+            @Valid @RequestBody NewsDto newsDto
+    ) throws IOException {
+        return processNews(newsDto, null)
+                .thenApply(ResponseEntity::ok);
+    }
+
+    private CompletableFuture<NewsResponseDto> processNews(NewsDto newsDto, MultipartFile image) throws IOException {
+        // Логика обработки файлов должна быть в сервисе, но для совместимости оставляем здесь
+        // В будущем можно использовать newsService.saveNewsWithImage()
         newsDto.setPublishedAt(LocalDateTime.now());
 
         String imagePath = null;
