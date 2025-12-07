@@ -33,7 +33,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IOException.class)
     public ResponseEntity<?> handlerIoException(IOException e) {
         String message = e.getMessage();
-
         log.error("Service unavailable due to IO exception: {}", message);
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)

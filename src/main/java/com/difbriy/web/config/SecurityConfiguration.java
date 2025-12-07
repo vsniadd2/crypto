@@ -72,7 +72,7 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000"));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
 
@@ -135,6 +135,6 @@ public class SecurityConfiguration {
             "/api/predictions/**",
             "/api/profile",
             "/api/v1/favorite/**",
-            "/api/currency",
+            "/api/currency"
     };
 }
