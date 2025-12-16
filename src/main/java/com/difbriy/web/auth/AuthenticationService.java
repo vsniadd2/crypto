@@ -4,7 +4,7 @@ import com.difbriy.web.dto.user.UserDto;
 import com.difbriy.web.entity.User;
 import com.difbriy.web.mapper.UserMapper;
 import com.difbriy.web.repository.UserRepository;
-import com.difbriy.web.service.mail.MailService;
+import com.difbriy.web.service.mail.MailServiceImpl;
 import com.difbriy.web.service.security.CustomUserDetailsService;
 import com.difbriy.web.service.security.JwtService;
 import com.difbriy.web.token.Token;
@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,74 +38,62 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final UserMapper userMapper;
     private final TokenRepository tokenRepository;
-    private final MailService mailService;
+    private final MailServiceImpl mailServiceImpl;
     private Executor executor;
 
     @Transactional
     public AuthenticationResponse register(RegistrationRequest request) {
         validateRegister(request);
-        var user = userMapper.toEntity(request);
-        var savedUser = userRepository.save(user);
 
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(request.email());
+        var savedUser = userRepository.save(userMapper.toEntity(request));
+
+        UserDetails userDetails = loadUserDetails(request.email());
         var jwtToken = jwtService.generateToken(userDetails);
         var refreshToken = jwtService.generateRefreshToken(userDetails);
         savedUserToken(savedUser, jwtToken);
 
-        UserDto userDto = userMapper.toDto(user);
 
-        //комментарий над самим методом
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            runAfterCommit(
-                    () -> mailService.sendWelcomeEmailAsync(request.email())
-                            .exceptionally(ex -> {
-                                log.error("Async email sending failed for {}", request.email(), ex);
-                                return null;
-                            })
-            );
-        } else {
-            mailService.sendWelcomeEmailAsync(request.email());
-        }
+        sendWelcomeEmailAfterCommit(request.email());
 
         return AuthenticationResponse.registration(
                 jwtToken,
                 refreshToken,
-                userDto
+                userMapper.toDto(savedUser)
         );
     }
 
     @Async
     public CompletableFuture<AuthenticationResponse> registerAsync(RegistrationRequest request) {
-        return CompletableFuture.supplyAsync(() -> register(request),executor);
+        return CompletableFuture.supplyAsync(() -> register(request), executor);
     }
 
     @Transactional
-    public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest) {
+    public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authenticationRequest.email(), authenticationRequest.password())
+                new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
 
-        User user = userRepository.findByEmail(authenticationRequest.email())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(authenticationRequest.email());
+        UserDetails userDetails = loadUserDetails(request.email());
         var jwtToken = jwtService.generateToken(userDetails);
         var refreshToken = jwtService.generateRefreshToken(userDetails);
+
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         revokeAllUserToken(user);
         savedUserToken(user, jwtToken);
         savedUserRefreshToken(user, refreshToken);
 
-        UserDto userDto = userMapper.toDto(user);
         return AuthenticationResponse.login(
                 jwtToken,
                 refreshToken,
-                userDto
+                userMapper.toDto(user)
         );
     }
 
     @Async
     public CompletableFuture<AuthenticationResponse> authenticateAsync(AuthenticationRequest authenticationRequest) {
-        return CompletableFuture.supplyAsync(() -> authenticate(authenticationRequest),executor);
+        return CompletableFuture.supplyAsync(() -> authenticate(authenticationRequest), executor);
     }
 
 
@@ -126,7 +115,7 @@ public class AuthenticationService {
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+        UserDetails userDetails = loadUserDetails(email);
 
         if (!jwtService.isTokenValid(refreshToken, userDetails))
             throw new IllegalArgumentException("Refresh token is not valid");
@@ -153,6 +142,24 @@ public class AuthenticationService {
 
     public CompletableFuture<AuthenticationResponse> refreshTokenAsync(String authHeader) {
         return CompletableFuture.supplyAsync(() -> refreshToken(authHeader));
+    }
+
+    private UserDetails loadUserDetails(final String email) {
+        return customUserDetailsService.loadUserByUsername(email);
+    }
+
+    private void sendWelcomeEmailAfterCommit(String email) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            runAfterCommit(
+                    () -> mailServiceImpl.sendWelcomeEmailAsync(email)
+                            .exceptionally(ex -> {
+                                log.error("Async email sending failed for {}", email, ex);
+                                return null;
+                            })
+            );
+        } else {
+            mailServiceImpl.sendWelcomeEmailAsync(email);
+        }
     }
 
     private void revokeAllUserToken(User user) {

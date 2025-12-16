@@ -4,7 +4,7 @@ import com.difbriy.web.dto.user.UserDto;
 import com.difbriy.web.entity.User;
 import com.difbriy.web.mapper.UserMapper;
 import com.difbriy.web.repository.UserRepository;
-import com.difbriy.web.service.mail.MailService;
+import com.difbriy.web.service.mail.MailServiceImpl;
 import com.difbriy.web.service.security.CustomUserDetailsService;
 import com.difbriy.web.service.security.JwtService;
 import com.difbriy.web.token.Token;
@@ -46,7 +46,7 @@ class AuthenticationServiceTest {
     @Mock
     private TokenRepository tokenRepository;
     @Mock
-    private MailService mailService;
+    private MailServiceImpl mailServiceImpl;
 
     private AuthenticationService authenticationService;
 
@@ -60,7 +60,7 @@ class AuthenticationServiceTest {
                 jwtService,
                 userMapper,
                 tokenRepository,
-                mailService
+                mailServiceImpl
         );
     }
 
@@ -84,7 +84,7 @@ class AuthenticationServiceTest {
         when(jwtService.generateToken(userDetails)).thenReturn("access-token");
         when(jwtService.generateRefreshToken(userDetails)).thenReturn("refresh-token");
         when(userMapper.toDto(savedUser)).thenReturn(userDto);
-        when(mailService.sendWelcomeEmailAsync(request.email())).thenReturn(CompletableFuture.completedFuture(null));
+        when(mailServiceImpl.sendWelcomeEmailAsync(request.email())).thenReturn(CompletableFuture.completedFuture(null));
 
         AuthenticationResponse response = authenticationService.register(request);
 
@@ -93,7 +93,7 @@ class AuthenticationServiceTest {
         assertThat(response.user()).isEqualTo(userDto);
 
         verify(tokenRepository).save(any(Token.class));
-        verify(mailService).sendWelcomeEmailAsync(request.email());
+        verify(mailServiceImpl).sendWelcomeEmailAsync(request.email());
     }
 
     @Test
