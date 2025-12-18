@@ -125,7 +125,8 @@ public class SecurityConfiguration {
             "/stomp/**",
             "/api/crypto/symbols",
             "/api/crypto/health",
-            "/actuator/**"
+            "/actuator/**",
+            "/api/currency"
     };
 
     private static final String[] AUTHENTICATED_URL = {
@@ -134,7 +135,6 @@ public class SecurityConfiguration {
             "/api/crypto/test-llm",
             "/api/predictions/**",
             "/api/profile",
-            "/api/v1/favorite/**",
-            "/api/currency"
+            "/api/v1/favorite/**"
     };
 }

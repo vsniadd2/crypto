@@ -6,6 +6,7 @@ import com.difbriy.web.dto.news.NewsResponseDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/admin/news")
 public class NewsAdminController {
     private final NewsAdminService newsAdminService;
@@ -66,5 +68,11 @@ public class NewsAdminController {
             @Valid @RequestBody NewsDto newsDto) {
         NewsResponseDto updatedNews = newsAdminService.editingNewsById(newsId, newsDto);
         return ResponseEntity.ok(updatedNews);
+    }
+
+    @DeleteMapping("/{newsId}")
+    public ResponseEntity<NewsResponseDto> deleteNews(@PathVariable Long newsId) {
+        NewsResponseDto deletedNews = newsAdminService.deleteNewsById(newsId);
+        return ResponseEntity.ok(deletedNews);
     }
 }

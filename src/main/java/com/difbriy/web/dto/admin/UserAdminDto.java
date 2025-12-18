@@ -8,6 +8,7 @@ import java.util.List;
 
 @Builder
 public record UserAdminDto(
+        Long id,
         String username,
         String email,
         List<Role> roles,

@@ -25,6 +25,7 @@ public class UserMapper {
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .roles(List.of(ROLE_USER))
+                .isActive(true)
                 .build();
     }
 

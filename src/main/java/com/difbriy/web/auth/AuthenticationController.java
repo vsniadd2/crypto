@@ -21,9 +21,6 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
-    private final AuthenticationManager authenticationManager;
-    private final CustomUserDetailsService customUserDetailsService;
-    private final JwtService jwtService;
 
     @PostMapping("/registration")
     public CompletableFuture<ResponseEntity<?>> registration(@Valid @RequestBody RegistrationRequest request) {

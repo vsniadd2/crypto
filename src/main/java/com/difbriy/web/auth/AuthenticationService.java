@@ -39,7 +39,7 @@ public class AuthenticationService {
     private final UserMapper userMapper;
     private final TokenRepository tokenRepository;
     private final MailServiceImpl mailServiceImpl;
-    private Executor executor;
+    private final Executor executor;
 
     @Transactional
     public AuthenticationResponse register(RegistrationRequest request) {

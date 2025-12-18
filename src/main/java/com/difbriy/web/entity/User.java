@@ -59,16 +59,7 @@ public class User {
     LocalDateTime dateTimeOfCreated;
 
     @Column(name = "isActive")
-    boolean isActive;
+    boolean isActive = true;
 
-    //todo что-то решить с этой дичкой
-    @PrePersist
-    private void init() {
-        if (roles == null || roles.isEmpty()) {
-            roles = new ArrayList<>();
-            roles.add(Role.ROLE_USER);
-        }
-        isActive = true;
-    }
 }
 

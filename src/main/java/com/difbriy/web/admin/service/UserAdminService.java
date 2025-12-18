@@ -32,6 +32,7 @@ public class UserAdminService {
                 users.getTotalElements()
         );
         return users.map(user -> UserAdminDto.builder()
+                .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .roles(user.getRoles())
