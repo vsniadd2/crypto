@@ -5,39 +5,39 @@ import com.difbriy.web.dto.contact.ContactRequest;
 import com.difbriy.web.entity.Contact;
 import com.difbriy.web.mapper.ContactMapper;
 import com.difbriy.web.repository.ContactRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 @Transactional
 public class ContactServiceImpl implements ContactService {
     private final ContactRepository contactRepository;
     private final ContactMapper mapper;
-    private final Executor executor;
 
-    public ContactServiceImpl(ContactRepository contactRepository, ContactMapper mapper, @Qualifier("taskExecutor") Executor executor) {
-        this.contactRepository = contactRepository;
-        this.mapper = mapper;
-        this.executor = executor;
-    }
 
     @Override
-    public CompletableFuture<ContactDto> saveContact(ContactRequest request) {
-        return CompletableFuture.supplyAsync(() -> {
-            log.info("Start saving contact: {}", request);
+    public ContactDto saveContact(ContactRequest request) {
 
-            Contact contact = mapper.toEntity(request);
-            contactRepository.save(contact);
+        log.info("Start saving contact: {}", request);
 
-            log.info("Contact saved successfully with id={}", contact.getId());
-            return mapper.toDto(contact);
-        }, executor);
+        Contact contact = mapper.toEntity(request);
+        contactRepository.save(contact);
+
+        log.info("Contact saved successfully with id={}", contact.getId());
+        return mapper.toDto(contact);
+    }
+
+    @Async("taskExecutor")
+    @Override
+    public CompletableFuture<ContactDto> saveContactAsync(ContactRequest request) {
+        return CompletableFuture.supplyAsync(() -> saveContact(request));
     }
 
     @Transactional(readOnly = true)

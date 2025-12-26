@@ -16,7 +16,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletableFuture;;
 
 @Slf4j
 @RestController
@@ -27,14 +27,10 @@ public class FavoriteController {
     private final UserService userService;
 
     @GetMapping
-    public CompletableFuture<ResponseEntity<List<FavoriteDto>>> getUserFavoritesCoins(Authentication authentication) {
+    public ResponseEntity<List<FavoriteDto>> getUserFavoritesCoins(Authentication authentication) {
         log.info("Getting list of favorite coins for user");
-        return getUserIdFromAuthentication(authentication)
-                .thenCompose(userId -> {
-                    log.debug("User ID extracted from authentication: {}", userId);
-                    return favoriteService.getUserFavorites(userId);
-                })
-                .thenApply(ResponseEntity::ok);
+        Long id = getUserIdFromAuthentication(authentication).join();
+        return ResponseEntity.ok(favoriteService.getUserFavorites(id));
     }
 
     @PostMapping("/add")
@@ -46,7 +42,7 @@ public class FavoriteController {
         return getUserIdFromAuthentication(authentication)
                 .thenCompose(userId -> {
                     log.debug("User ID extracted from authentication: {}", userId);
-                    return favoriteService.addFavorite(userId, request.coinId());
+                    return favoriteService.addFavoriteAsync(userId, request.coinId());
                 })
                 .thenApply(ResponseEntity::ok)
                 .exceptionally(ex -> {
@@ -63,7 +59,7 @@ public class FavoriteController {
         return getUserIdFromAuthentication(authentication)
                 .thenCompose(userId -> {
                     log.debug("User ID extracted from authentication: {}", userId);
-                    return favoriteService.removeFavorite(userId, coinId)
+                    return favoriteService.removeFavoriteAsync(userId, coinId)
                             .thenApply(v -> {
                                 log.info("Coin with ID {} successfully removed from favorites for user with ID: {}",
                                         coinId, userId);
@@ -72,35 +68,26 @@ public class FavoriteController {
                 });
     }
 
-
-
     @GetMapping("/{coinId}")
-    public CompletableFuture<ResponseEntity<FavoriteStatusDto>> checkFavorite(
+    public ResponseEntity<FavoriteStatusDto> checkFavorite(
             @PathVariable String coinId,
             Authentication authentication) {
         log.debug("Checking favorite status for coin. Coin ID: {}", coinId);
-        return getUserIdFromAuthentication(authentication)
-                .thenCompose(userId -> {
-                    log.debug("User ID extracted from authentication: {}", userId);
-                    return favoriteService.isFavorite(userId, coinId)
-                            .thenApply(isFavorite -> {
-                                log.debug("Favorite status for coin with ID {} and user with ID {}: {}",
-                                        coinId, userId, isFavorite);
-                                FavoriteStatusDto status = new FavoriteStatusDto(isFavorite, coinId);
-                                return ResponseEntity.ok(status);
-                            });
-                });
+        Long id = getUserIdFromAuthentication(authentication).join();
+        boolean isFav = favoriteService.isFavorite(id, coinId);
+        FavoriteStatusDto responseDto = FavoriteStatusDto.builder()
+                .isFavorite(isFav)
+                .coinId(coinId)
+                .build();
+        return ResponseEntity.ok(responseDto);
     }
 
-
+    //todo Убрать ебанный CompletableFuture Отсюда
     private CompletableFuture<Long> getUserIdFromAuthentication(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String email = userDetails.getUsername();
-        return userService.findByEmail(email)
-                .thenApply(userOpt -> userOpt
-                        .orElseThrow(() ->
-                                new UsernameNotFoundException(String.format("User not found with email: %s", email))
-                        ))
-                .thenApply(User::getId);
+
+        return CompletableFuture.completedFuture(userService.findByEmail(email).orElseThrow().getId());
+
     }
 }

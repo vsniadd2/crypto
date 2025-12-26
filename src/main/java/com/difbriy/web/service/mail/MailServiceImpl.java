@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
@@ -32,6 +33,7 @@ public class MailServiceImpl implements MailService {
                     С уважением, Команда MERO
                     """;
 
+    @Async("taskExecutor")
     @Override
     public CompletableFuture<Void> sendWelcomeEmailAsync(String to) {
         return CompletableFuture.runAsync(() -> {

@@ -31,13 +31,12 @@ public class ProfileController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public CompletableFuture<ResponseEntity<ProfileDto>> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<ProfileDto> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
 
         String email = extractEmail(userDetails);
         log.info("Getting profile for email: {}", email);
-
-        return userService.getProfileByEmail(email)
-                .thenApply(ResponseEntity::ok);
+        ProfileDto response = userService.getProfileByEmail(email);
+        return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -46,12 +45,8 @@ public class ProfileController {
                                                                                       @AuthenticationPrincipal UserDetails userDetails) {
         String email = extractEmail(userDetails);
         log.info("Extracted email from userDetails: {}", email);
-        
-        return userService.findByEmail(email)
-                .thenCompose(userOpt -> {
-                    User user = userOpt.orElseThrow(() -> new RuntimeException("User not found"));
-                    return userService.updateProfile(user.getId(), user.getUsername(), user.getEmail());
-                })
+        User user = userService.findByEmail(email).get();
+        return userService.updateProfile(user.getId(), user.getUsername(), user.getEmail())
                 .thenApply(response ->
                         ResponseEntity
                                 .status(HttpStatus.OK)
@@ -59,7 +54,7 @@ public class ProfileController {
                 );
     }
 
-    private String extractEmail(UserDetails userDetails){
+    private String extractEmail(UserDetails userDetails) {
         return userDetails.getUsername();
     }
 

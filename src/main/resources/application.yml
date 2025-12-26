@@ -125,3 +125,6 @@ management:
   endpoint:
     health:
       show-details: always
+
+user-service:
+  reset-password: http://localhost:8080/api/v1/reset-password/confirm?token=

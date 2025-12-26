@@ -17,7 +17,8 @@ import com.difbriy.web.mapper.ProfileMapper;
 import com.difbriy.web.mapper.UserMapper;
 import com.difbriy.web.service.security.CustomUserDetailsService;
 import com.difbriy.web.service.security.JwtService;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,41 +31,33 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
     private final Path avatarStoragePath = Paths.get("uploads/avatars");
-    private final UserMapper mapper;
+    private final UserMapper userMapper;
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtService jwtService;
     private final ProfileMapper profileMapper;
     private final PasswordEncoder passwordEncoder;
     private final Executor executor;
 
-    public UserService(UserRepository userRepository, UserMapper mapper,
-                       CustomUserDetailsService customUserDetailsService,
-                       JwtService jwtService, ProfileMapper profileMapper,
-                       PasswordEncoder passwordEncoder,@Qualifier("taskExecutor") Executor executor) {
-        this.userRepository = userRepository;
-        this.mapper = mapper;
-        this.customUserDetailsService = customUserDetailsService;
-        this.jwtService = jwtService;
-        this.profileMapper = profileMapper;
-        this.passwordEncoder = passwordEncoder;
-        this.executor = executor;
+    @Value("${user-service.reset-password}")
+    private String RESET_PASSWORD_URL;
+
+    @Transactional(readOnly = true)
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+
     }
 
-    public CompletableFuture<Optional<User>> findByEmail(String email) {
-        return CompletableFuture.supplyAsync(()->{
-            return userRepository.findByEmail(email);
-        },executor);
-    }
-
-    public CompletableFuture<ProfileDto> getProfileByEmail(String email) {
-        return findByEmail(email)
-                .thenApply(userOpt -> userOpt
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email)))
-                .thenApply(profileMapper::toDto);
+    @Transactional(readOnly = true)
+    public ProfileDto getProfileByEmail(String email) {
+        User user = findByEmail(email).orElseThrow(
+                () -> new UsernameNotFoundException(String.format("User with email %s not found", email))
+        );
+        return profileMapper.toDto(user);
     }
 
     @Transactional
@@ -76,9 +69,9 @@ public class UserService {
             user.setResetToken(token);
             user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
             userRepository.save(user);
-            
-            String resetUrl = "http://localhost:8080/api/v1/reset-password/confirm?token=" + token;
-            
+
+            String resetUrl = RESET_PASSWORD_URL + token;
+
             return PasswordResetResponseDto.builder()
                     .message("success")
                     .resetToken(token)
@@ -98,19 +91,19 @@ public class UserService {
             user.setResetToken(null);
             user.setResetTokenExpiry(null);
             userRepository.save(user);
-            
+
             log.info("Password successfully reset for user: {}", user.getEmail());
             return PasswordResetResponseDto.passwordChanged();
         }, executor);
     }
 
-    public CompletableFuture<User> findByResetToken(String token) {
-        return CompletableFuture.supplyAsync(() -> 
-                userRepository.findByResetToken(token)
-                        .orElseThrow(() -> new InvalidResetTokenException("Token not found")), executor);
+    @Transactional(readOnly = true)
+    public User findByResetToken(String token) {
+        return userRepository.findByResetToken(token)
+                .orElseThrow(() -> new InvalidResetTokenException(String.format("Token: $s not found", token)));
     }
 
-    @Transactional()
+    @Transactional
     public CompletableFuture<UpdatedProfileResponseDto> updateProfile(Long userId, String username, String email) {
         return CompletableFuture.supplyAsync(() -> {
             User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -122,7 +115,7 @@ public class UserService {
             var updatedUserDetails = customUserDetailsService.loadUserByUsername(updatedUser.getEmail());
             String token = jwtService.generateToken(updatedUserDetails);
 
-            return mapper.toUpdatedProfileDto(user, token);
+            return userMapper.toUpdatedProfileDto(user, token);
         }, executor);
     }
 
@@ -131,7 +124,7 @@ public class UserService {
         if (dto.token() == null || dto.token().trim().isEmpty()) {
             throw new InvalidResetTokenException("Token cannot be empty");
         }
-        
+
         User user = userRepository.findByResetToken(dto.token())
                 .orElseThrow(() -> new InvalidResetTokenException("Invalid reset token"));
 
@@ -142,7 +135,7 @@ public class UserService {
         if (!dto.newPassword().equals(dto.confirmPassword())) {
             throw new InvalidResetTokenException("The passwords don't match");
         }
-        
+
         return user;
     }
 

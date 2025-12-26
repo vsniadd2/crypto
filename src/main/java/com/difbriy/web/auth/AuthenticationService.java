@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,7 +24,6 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +37,6 @@ public class AuthenticationService {
     private final UserMapper userMapper;
     private final TokenRepository tokenRepository;
     private final MailServiceImpl mailServiceImpl;
-    private final Executor executor;
 
     @Transactional
     public AuthenticationResponse register(RegistrationRequest request) {
@@ -52,7 +49,6 @@ public class AuthenticationService {
         var refreshToken = jwtService.generateRefreshToken(userDetails);
         savedUserToken(savedUser, jwtToken);
 
-
         sendWelcomeEmailAfterCommit(request.email());
 
         return AuthenticationResponse.registration(
@@ -62,9 +58,9 @@ public class AuthenticationService {
         );
     }
 
-    @Async
+    @Async("taskExecutor")
     public CompletableFuture<AuthenticationResponse> registerAsync(RegistrationRequest request) {
-        return CompletableFuture.supplyAsync(() -> register(request), executor);
+        return CompletableFuture.completedFuture(register(request));
     }
 
     @Transactional
@@ -91,16 +87,16 @@ public class AuthenticationService {
         );
     }
 
-    @Async
-    public CompletableFuture<AuthenticationResponse> authenticateAsync(AuthenticationRequest authenticationRequest) {
-        return CompletableFuture.supplyAsync(() -> authenticate(authenticationRequest), executor);
+    @Async("taskExecutor")
+    public CompletableFuture<AuthenticationResponse> authenticateAsync(AuthenticationRequest request) {
+        return CompletableFuture.completedFuture(authenticate(request));
     }
-
 
     @Transactional
     public AuthenticationResponse refreshToken(String authHeader) {
         validateRefreshToken(authHeader);
-        log.info("sayonara boy");
+        log.info("Refreshing token...");
+
         String refreshToken = authHeader.substring(7);
         String email = jwtService.getUsername(refreshToken);
 
@@ -124,7 +120,7 @@ public class AuthenticationService {
         if (storedRefreshToken.isEmpty() || storedRefreshToken.get().isExpired() || storedRefreshToken.get().isRevoked()) {
             throw new IllegalArgumentException("Refresh token is not valid or has been revoked");
         }
-        //f
+
         String newAccessToken = jwtService.generateToken(userDetails);
         String newRefreshToken = jwtService.generateRefreshToken(userDetails);
         revokeAllUserToken(user);
@@ -140,8 +136,9 @@ public class AuthenticationService {
                 .build();
     }
 
+    @Async("taskExecutor")
     public CompletableFuture<AuthenticationResponse> refreshTokenAsync(String authHeader) {
-        return CompletableFuture.supplyAsync(() -> refreshToken(authHeader));
+        return CompletableFuture.completedFuture(refreshToken(authHeader));
     }
 
     private UserDetails loadUserDetails(final String email) {
@@ -211,10 +208,6 @@ public class AuthenticationService {
             throw new IllegalArgumentException("Missing or invalid Authorization header");
     }
 
-    /**
-     * Отправка письма о регистрации пользователя без вреда производительности метода регистрации
-     *
-     **/
     private void runAfterCommit(Runnable runnable) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -224,3 +217,4 @@ public class AuthenticationService {
         });
     }
 }
+

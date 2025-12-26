@@ -5,11 +5,12 @@ import com.difbriy.web.dto.news.NewsResponseDto;
 import com.difbriy.web.entity.News;
 import com.difbriy.web.repository.NewsRepository;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import lombok.extern.slf4j.Slf4j;
@@ -25,35 +26,31 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
-@Transactional
 public class NewsService {
     private static final String UPLOAD_DIR = "uploads/news-images/";
     
     private final NewsRepository newsRepository;
     private final Executor executor;
 
-    public NewsService(NewsRepository newsRepository, @Qualifier("taskExecutor") Executor executor) {
-        this.newsRepository = newsRepository;
-        this.executor = executor;
-    }
-
+    @Async("taskExecutor")
+    @Transactional
     public CompletableFuture<NewsResponseDto> saveNews(NewsDto newsDto, String imagePath) {
-        return CompletableFuture.supplyAsync(() -> {
-            var news = News.builder()
-                    .title(newsDto.getTitle())
-                    .description(newsDto.getDescription())
-                    .content(newsDto.getContent())
-                    .category(newsDto.getCategory())
-                    .author(newsDto.getAuthor())
-                    .publishedAt(newsDto.getPublishedAt())
-                    .imagePath(imagePath)
-                    .build();
+        var news = News.builder()
+                .title(newsDto.getTitle())
+                .description(newsDto.getDescription())
+                .content(newsDto.getContent())
+                .category(newsDto.getCategory())
+                .author(newsDto.getAuthor())
+                .publishedAt(newsDto.getPublishedAt())
+                .imagePath(imagePath)
+                .build();
 
-            News savedNews = newsRepository.save(news);
-            return new NewsResponseDto(savedNews);
-        }, executor);
+        News savedNews = newsRepository.save(news);
+        return CompletableFuture.completedFuture(new NewsResponseDto(savedNews));
     }
+
 
     public CompletableFuture<NewsResponseDto> saveNewsWithImage(NewsDto newsDto, MultipartFile image) {
         if (newsDto.getPublishedAt() == null) {
@@ -96,6 +93,7 @@ public class NewsService {
         return fileName;
     }
 
+    @Transactional(readOnly = true)
     public Resource getImageResource(String filename) throws IOException {
         Path imagePath = Paths.get(UPLOAD_DIR, filename);
         Resource resource = new UrlResource(imagePath.toUri());
@@ -108,6 +106,7 @@ public class NewsService {
         return resource;
     }
 
+    @Transactional(readOnly = true)
     public String getImageContentType(String filename) throws IOException {
         Path imagePath = Paths.get(UPLOAD_DIR, filename);
         String contentType = Files.probeContentType(imagePath);
