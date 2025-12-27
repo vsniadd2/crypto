@@ -1,5 +1,7 @@
 package com.difbriy.web.config;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -22,13 +24,13 @@ public class WebSocketEventListener {
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String sessionId = headerAccessor.getSessionId();
-        
+
         log.info("WebSocket client connected successfully: sessionId = {}", sessionId);
-        
-               messagingTemplate.convertAndSendToUser(
-            sessionId, 
-            "/topic/connection-status", 
-            new ConnectionStatusMessage("CONNECTED", "WebSocket connection established successfully", sessionId)
+
+        messagingTemplate.convertAndSendToUser(
+                sessionId,
+                "/topic/connection-status",
+                new ConnectionStatusMessage("CONNECTED", "WebSocket connection established successfully", sessionId)
         );
     }
 
@@ -36,15 +38,17 @@ public class WebSocketEventListener {
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String sessionId = headerAccessor.getSessionId();
-        
+
         log.info("WebSocket client disconnected: sessionId = {}", sessionId);
 
         messagingTemplate.convertAndSend(
-            "/topic/disconnection", 
-            new ConnectionStatusMessage("DISCONNECTED", "Client disconnected", sessionId)
+                "/topic/disconnection",
+                new ConnectionStatusMessage("DISCONNECTED", "Client disconnected", sessionId)
         );
     }
 
+    @Getter
+    @Setter
     public static class ConnectionStatusMessage {
         private String status;
         private String message;
@@ -57,15 +61,5 @@ public class WebSocketEventListener {
             this.sessionId = sessionId;
             this.timestamp = System.currentTimeMillis();
         }
-
-        public String getStatus() { return status; }
-        public String getMessage() { return message; }
-        public String getSessionId() { return sessionId; }
-        public long getTimestamp() { return timestamp; }
-
-        public void setStatus(String status) { this.status = status; }
-        public void setMessage(String message) { this.message = message; }
-        public void setSessionId(String sessionId) { this.sessionId = sessionId; }
-        public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
     }
 }

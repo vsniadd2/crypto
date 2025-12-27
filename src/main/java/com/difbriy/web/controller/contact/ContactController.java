@@ -2,6 +2,7 @@ package com.difbriy.web.controller.contact;
 
 import com.difbriy.web.dto.contact.ContactDto;
 import com.difbriy.web.dto.contact.ContactRequest;
+import com.difbriy.web.service.contact.ContactService;
 import com.difbriy.web.service.contact.ContactServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/contacts")
 public class ContactController {
-    private final ContactServiceImpl contactServiceImpl;
+    private final ContactService contactServiceImpl;
 
     @PostMapping
     public CompletableFuture<ResponseEntity<ContactDto>> saveContact(@Valid @RequestBody ContactRequest request) {

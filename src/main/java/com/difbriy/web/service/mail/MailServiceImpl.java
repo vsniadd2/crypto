@@ -36,22 +36,23 @@ public class MailServiceImpl implements MailService {
     @Async("taskExecutor")
     @Override
     public CompletableFuture<Void> sendWelcomeEmailAsync(String to) {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                log.info("Attempting to send welcome email to: {}", to);
-                SimpleMailMessage mailMessage = new SimpleMailMessage();
-                mailMessage.setFrom(fromEmail);
-                mailMessage.setTo(to);
-                mailMessage.setSubject(MAIL_SUBJECT_TEXT.trim());
-                mailMessage.setText(MAIL_TEXT);
+        try {
+            log.info("Attempting to send welcome email to: {}", to);
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
+            mailMessage.setFrom(fromEmail);
+            mailMessage.setTo(to);
+            mailMessage.setSubject(MAIL_SUBJECT_TEXT.trim());
+            mailMessage.setText(MAIL_TEXT);
 
-                mailSender.send(mailMessage);
-                log.info("Welcome email successfully sent to: {}", to);
-            } catch (MailException e) {
-                log.error("Failed to send welcome email to {}: {}", to, e.getMessage(), e);
-            } catch (Exception e) {
-                log.error("Unexpected error while sending welcome email to {}: {}", to, e.getMessage(), e);
-            }
-        });
+            mailSender.send(mailMessage);
+            log.info("Welcome email successfully sent to: {}", to);
+            return CompletableFuture.completedFuture(null);
+        } catch (MailException e) {
+            log.error("Failed to send welcome email to {}: {}", to, e.getMessage(), e);
+            return CompletableFuture.failedFuture(e);
+        } catch (Exception e) {
+            log.error("Unexpected error while sending welcome email to {}: {}", to, e.getMessage(), e);
+            return CompletableFuture.failedFuture(e);
+        }
     }
 }

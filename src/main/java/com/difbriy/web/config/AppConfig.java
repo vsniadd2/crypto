@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilde
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.time.Clock;
@@ -14,7 +13,7 @@ import java.util.concurrent.Executors;
 
 @Configuration
 @EnableAsync
-public class AppConfig implements AsyncConfigurer{
+public class AppConfig{
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer customizer() {
         return builder -> builder.propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);

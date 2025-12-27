@@ -4,6 +4,7 @@ import com.difbriy.web.dto.user.UserDto;
 import com.difbriy.web.entity.User;
 import com.difbriy.web.mapper.UserMapper;
 import com.difbriy.web.repository.UserRepository;
+import com.difbriy.web.service.mail.MailService;
 import com.difbriy.web.service.mail.MailServiceImpl;
 import com.difbriy.web.service.security.CustomUserDetailsService;
 import com.difbriy.web.service.security.JwtService;
@@ -36,7 +37,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final UserMapper userMapper;
     private final TokenRepository tokenRepository;
-    private final MailServiceImpl mailServiceImpl;
+    private final MailService mailServiceImpl;
 
     @Transactional
     public AuthenticationResponse register(RegistrationRequest request) {

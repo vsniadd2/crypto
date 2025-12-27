@@ -25,10 +25,6 @@ public class CryptoChartController {
     private final CryptoService cryptoService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    /**
-     * Получение исторических данных для графика конкретной криптовалюты
-     * Поддерживаемые периоды: 24h, 7d, 30d, 6m
-     */
     @GetMapping("/{symbol}")
     public ResponseEntity<CryptoChartData> getCryptoChartData(
             @PathVariable String symbol,

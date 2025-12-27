@@ -5,7 +5,7 @@ import com.difbriy.web.dto.news.NewsResponseDto;
 import com.difbriy.web.entity.News;
 import com.difbriy.web.mapper.NewsMapper;
 import com.difbriy.web.repository.NewsRepository;
-import com.difbriy.web.service.news.NewsService;
+import com.difbriy.web.service.news.NewsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 @Transactional
 public class NewsAdminService {
     private final NewsRepository newsRepository;
-    private final NewsService newsService;
+    private final NewsServiceImpl newsServiceImpl;
     private final NewsMapper mapper;
 
     @Transactional
@@ -57,7 +57,7 @@ public class NewsAdminService {
 
     public CompletableFuture<NewsResponseDto> saveNews(NewsDto newsDto, String imagePath) {
         log.info("Creating new news with title: {}", newsDto.getTitle());
-        return newsService.saveNews(newsDto, imagePath)
+        return newsServiceImpl.saveNews(newsDto, imagePath)
                 .thenApply(savedNews -> {
                     if (savedNews != null && savedNews.getId() != null) {
                         log.info("News with id {} has been created successfully", savedNews.getId());

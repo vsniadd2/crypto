@@ -3,15 +3,16 @@ package com.difbriy.web.controller.profile;
 import com.difbriy.web.dto.user.ProfileDto;
 import com.difbriy.web.dto.user.UpdateProfileRequestDto;
 import com.difbriy.web.dto.user.UpdatedProfileResponseDto;
+import com.difbriy.web.service.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import com.difbriy.web.entity.User;
-import com.difbriy.web.service.user.UserService;
 import com.difbriy.web.service.security.CustomUserDetailsService;
 import com.difbriy.web.service.security.JwtService;
 
@@ -45,7 +46,10 @@ public class ProfileController {
                                                                                       @AuthenticationPrincipal UserDetails userDetails) {
         String email = extractEmail(userDetails);
         log.info("Extracted email from userDetails: {}", email);
-        User user = userService.findByEmail(email).get();
+
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException(String.format("User with email %s not found", email)));
+
         return userService.updateProfile(user.getId(), user.getUsername(), user.getEmail())
                 .thenApply(response ->
                         ResponseEntity

@@ -3,7 +3,6 @@ package com.difbriy.web.controller.favorite;
 import com.difbriy.web.dto.favorite.AddFavoriteRequest;
 import com.difbriy.web.dto.favorite.FavoriteDto;
 import com.difbriy.web.dto.favorite.FavoriteStatusDto;
-import com.difbriy.web.entity.User;
 import com.difbriy.web.service.favorite.FavoriteService;
 import com.difbriy.web.service.user.UserService;
 import jakarta.validation.Valid;
@@ -12,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
