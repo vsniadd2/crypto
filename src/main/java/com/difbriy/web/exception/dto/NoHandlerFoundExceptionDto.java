@@ -1,15 +1,15 @@
-package com.difbriy.web.exception;
+package com.difbriy.web.exception.dto;
 
 import java.time.LocalDateTime;
 
-public record MalformedJwtExceptionDto(
+public record NoHandlerFoundExceptionDto(
         boolean success,
         String message,
         LocalDateTime localDateTime,
         String errorType
 ) {
-    public static MalformedJwtExceptionDto create(String message, String errorType) {
-        return new MalformedJwtExceptionDto(
+    public static NoHandlerFoundExceptionDto create(String message, String errorType) {
+        return new NoHandlerFoundExceptionDto(
                 false,
                 message,
                 LocalDateTime.now(),

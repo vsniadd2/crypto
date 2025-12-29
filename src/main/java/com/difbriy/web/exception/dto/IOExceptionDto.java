@@ -1,15 +1,15 @@
-package com.difbriy.web.exception;
+package com.difbriy.web.exception.dto;
 
 import java.time.LocalDateTime;
 
-public record ExpiredJwtExceptionDto(
+public record IOExceptionDto(
         boolean success,
         String message,
         LocalDateTime localDateTime,
         String errorType
 ) {
-    public static ExpiredJwtExceptionDto create(String message, String errorType) {
-        return new ExpiredJwtExceptionDto(
+    public static IOExceptionDto create(String message, String errorType) {
+        return new IOExceptionDto(
                 false,
                 message,
                 LocalDateTime.now(),

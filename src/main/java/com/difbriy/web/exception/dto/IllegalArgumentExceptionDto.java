@@ -1,15 +1,15 @@
-package com.difbriy.web.exception;
+package com.difbriy.web.exception.dto;
 
 import java.time.LocalDateTime;
 
-public record ExceptionDto(
+public record IllegalArgumentExceptionDto(
         boolean success,
         String message,
         LocalDateTime localDateTime,
         String errorType
 ) {
-    public static ExceptionDto create(String message, String errorType) {
-        return new ExceptionDto(
+    public static IllegalArgumentExceptionDto create(String message, String errorType) {
+        return new IllegalArgumentExceptionDto(
                 false,
                 message,
                 LocalDateTime.now(),

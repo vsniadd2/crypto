@@ -1,15 +1,15 @@
-package com.difbriy.web.exception;
+package com.difbriy.web.exception.dto;
 
 import java.time.LocalDateTime;
 
-public record NoHandlerFoundExceptionDto(
+public record LogoutHandlerExceptionDto(
         boolean success,
         String message,
         LocalDateTime localDateTime,
         String errorType
 ) {
-    public static NoHandlerFoundExceptionDto create(String message, String errorType) {
-        return new NoHandlerFoundExceptionDto(
+    public static LogoutHandlerExceptionDto create(String message, String errorType) {
+        return new LogoutHandlerExceptionDto(
                 false,
                 message,
                 LocalDateTime.now(),
@@ -17,3 +17,7 @@ public record NoHandlerFoundExceptionDto(
         );
     }
 }
+
+
+
+

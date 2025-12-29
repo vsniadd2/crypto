@@ -1,22 +1,23 @@
-package com.difbriy.web.exception;
+package com.difbriy.web.exception.dto;
 
 import java.time.LocalDateTime;
 
-public record AuthenticationCredentialsNotFoundExceptionDto(
+public record RuntimeExceptionDto(
         boolean success,
         String message,
         LocalDateTime localDateTime,
         String errorType
 ) {
-    public static AuthenticationCredentialsNotFoundExceptionDto create(
+    public static RuntimeExceptionDto create(
             String message,
             String errorType
     ) {
-        return new AuthenticationCredentialsNotFoundExceptionDto(
+        return new RuntimeExceptionDto(
                 false,
                 message,
                 LocalDateTime.now(),
                 errorType
         );
     }
+
 }

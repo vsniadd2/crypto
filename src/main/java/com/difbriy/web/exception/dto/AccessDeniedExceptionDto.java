@@ -1,15 +1,15 @@
-package com.difbriy.web.exception;
+package com.difbriy.web.exception.dto;
 
 import java.time.LocalDateTime;
 
-public record IOExceptionDto(
+public record AccessDeniedExceptionDto(
         boolean success,
         String message,
         LocalDateTime localDateTime,
         String errorType
 ) {
-    public static IOExceptionDto create(String message, String errorType) {
-        return new IOExceptionDto(
+    public static AccessDeniedExceptionDto create(String message, String errorType) {
+        return new AccessDeniedExceptionDto(
                 false,
                 message,
                 LocalDateTime.now(),
@@ -17,3 +17,4 @@ public record IOExceptionDto(
         );
     }
 }
+

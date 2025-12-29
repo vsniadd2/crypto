@@ -1,15 +1,15 @@
-package com.difbriy.web.exception;
+package com.difbriy.web.exception.dto;
 
 import java.time.LocalDateTime;
 
-public record AccessDeniedExceptionDto(
+public record UsernameNotFoundExceptionDto(
         boolean success,
         String message,
         LocalDateTime localDateTime,
         String errorType
 ) {
-    public static AccessDeniedExceptionDto create(String message, String errorType) {
-        return new AccessDeniedExceptionDto(
+    public static UsernameNotFoundExceptionDto create(String message, String errorType) {
+        return new UsernameNotFoundExceptionDto(
                 false,
                 message,
                 LocalDateTime.now(),
@@ -17,4 +17,3 @@ public record AccessDeniedExceptionDto(
         );
     }
 }
-

@@ -1,15 +1,15 @@
-package com.difbriy.web.exception;
+package com.difbriy.web.exception.dto;
 
 import java.time.LocalDateTime;
 
-public record InvalidResetTokenExceptionDto(
+public record SignatureExceptionDto(
         boolean success,
         String message,
         LocalDateTime localDateTime,
         String errorType
 ) {
-    public static InvalidResetTokenExceptionDto create(String message, String errorType) {
-        return new InvalidResetTokenExceptionDto(
+    public static SignatureExceptionDto create(String message, String errorType) {
+        return new SignatureExceptionDto(
                 false,
                 message,
                 LocalDateTime.now(),
@@ -17,4 +17,3 @@ public record InvalidResetTokenExceptionDto(
         );
     }
 }
-

@@ -1,5 +1,6 @@
 package com.difbriy.web.exception;
 
+import com.difbriy.web.exception.dto.*;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.io.IOException;

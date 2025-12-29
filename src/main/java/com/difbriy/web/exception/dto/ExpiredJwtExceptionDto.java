@@ -1,15 +1,15 @@
-package com.difbriy.web.exception;
+package com.difbriy.web.exception.dto;
 
 import java.time.LocalDateTime;
 
-public record LogoutHandlerExceptionDto(
+public record ExpiredJwtExceptionDto(
         boolean success,
         String message,
         LocalDateTime localDateTime,
         String errorType
 ) {
-    public static LogoutHandlerExceptionDto create(String message, String errorType) {
-        return new LogoutHandlerExceptionDto(
+    public static ExpiredJwtExceptionDto create(String message, String errorType) {
+        return new ExpiredJwtExceptionDto(
                 false,
                 message,
                 LocalDateTime.now(),
@@ -17,7 +17,3 @@ public record LogoutHandlerExceptionDto(
         );
     }
 }
-
-
-
-

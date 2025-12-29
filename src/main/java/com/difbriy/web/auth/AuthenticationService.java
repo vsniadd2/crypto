@@ -75,7 +75,10 @@ public class AuthenticationService {
         var refreshToken = jwtService.generateRefreshToken(userDetails);
 
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() ->
+                                new UsernameNotFoundException(String
+                                        .format("User not found with email: %s", request.email()))
+                );
 
         revokeAllUserToken(user);
         savedUserToken(user, jwtToken);
