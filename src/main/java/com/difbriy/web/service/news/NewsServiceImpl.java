@@ -35,7 +35,7 @@ public class NewsServiceImpl implements NewsService {
     private final Executor executor;
 
     @Async("taskExecutor")
-    @Transactional
+    @Transactional()
     @Override
     public CompletableFuture<NewsResponseDto> saveNews(NewsDto newsDto, String imagePath) {
         var news = News.builder()

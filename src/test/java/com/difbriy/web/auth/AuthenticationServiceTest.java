@@ -2,7 +2,6 @@ package com.difbriy.web.auth;
 
 import com.difbriy.web.dto.user.UserDto;
 import com.difbriy.web.entity.User;
-import com.difbriy.web.mapper.UserMapper;
 import com.difbriy.web.repository.UserRepository;
 import com.difbriy.web.service.mail.MailServiceImpl;
 import com.difbriy.web.service.security.CustomUserDetailsService;

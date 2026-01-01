@@ -5,7 +5,6 @@ import com.difbriy.web.entity.User;
 import com.difbriy.web.mapper.UserMapper;
 import com.difbriy.web.repository.UserRepository;
 import com.difbriy.web.service.mail.MailService;
-import com.difbriy.web.service.mail.MailServiceImpl;
 import com.difbriy.web.service.security.CustomUserDetailsService;
 import com.difbriy.web.service.security.JwtService;
 import com.difbriy.web.token.Token;
@@ -43,7 +42,7 @@ public class AuthenticationService {
     public AuthenticationResponse register(RegistrationRequest request) {
         validateRegister(request);
 
-        var savedUser = userRepository.save(userMapper.toEntity(request));
+        var savedUser = userRepository.save(userMapper.toEntity(request, passwordEncoder));
 
         UserDetails userDetails = loadUserDetails(request.email());
         var jwtToken = jwtService.generateToken(userDetails);
@@ -76,8 +75,8 @@ public class AuthenticationService {
 
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() ->
-                                new UsernameNotFoundException(String
-                                        .format("User not found with email: %s", request.email()))
+                        new UsernameNotFoundException(String
+                                .format("User not found with email: %s", request.email()))
                 );
 
         revokeAllUserToken(user);

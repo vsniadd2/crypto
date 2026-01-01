@@ -7,7 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface ContactMapperr {
+public interface ContactMapper {
     Contact toEntity(ContactRequest request);
 
     ContactDto toDto(Contact contact);
