@@ -31,17 +31,13 @@ public class CryptoPredictionLLMService {
     private final LocalLLMClient localLLMClient;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Генерирует прогноз цены для указанной криптовалюты
-     */
+
     public PredictionResponseDto generatePrediction(PredictionRequestDto request) {
         try {
             log.info("Generating prediction for {} with timeframe {}", request.getSymbol(), request.getTimeframe());
-            
-            // Получаем данные для анализа
+
             CryptoAnalysisDataDto analysisData = prepareAnalysisData(request);
-            
-            // Генерируем прогноз через локальную LLM или простой алгоритм
+
             PredictionResponseDto prediction;
             if (localLLMClient.isAvailable()) {
                 prediction = generatePredictionWithLLM(analysisData, request);
@@ -49,8 +45,7 @@ public class CryptoPredictionLLMService {
                 log.warn("Local LLM not available, using simple prediction algorithm");
                 prediction = generateSimplePrediction(analysisData, request);
             }
-            
-            // Сохраняем прогноз в БД
+
             savePrediction(prediction);
             
             return prediction;
@@ -61,23 +56,18 @@ public class CryptoPredictionLLMService {
         }
     }
 
-    /**
-     * Подготавливает данные для анализа
-     */
+
     private CryptoAnalysisDataDto prepareAnalysisData(PredictionRequestDto request) {
-        // Получаем последние данные криптовалюты
         CryptoData latestData = cryptoDataRepository.findLatestBySymbol(request.getSymbol());
         
         if (latestData == null) {
             throw new RuntimeException("No data found for symbol: " + request.getSymbol());
         }
 
-        // Получаем исторические данные за последние 6 месяцев для прогноза
         LocalDateTime startTime = LocalDateTime.now().minusMonths(6); // Последние 6 месяцев
         List<CryptoData> historicalData = cryptoDataRepository.findLast6MonthsBySymbol(
                 request.getSymbol(), startTime);
 
-        // Конвертируем в DTO
         List<PriceDataPoint> pricePoints = historicalData.stream()
                 .map(data -> PriceDataPoint.builder()
                         .timestamp(data.getTimestamp().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
@@ -86,10 +76,8 @@ public class CryptoPredictionLLMService {
                         .build())
                 .collect(Collectors.toList());
 
-        // Вычисляем технические индикаторы
         String technicalAnalysis = calculateTechnicalIndicators(historicalData);
-        
-        // Получаем новости (заглушка)
+
         List<String> recentNews = getRecentNews(request.getSymbol());
 
         return CryptoAnalysisDataDto.builder()
@@ -108,30 +96,19 @@ public class CryptoPredictionLLMService {
                 .build();
     }
 
-    /**
-     * Генерирует прогноз через локальную LLM
-     */
     private PredictionResponseDto generatePredictionWithLLM(CryptoAnalysisDataDto analysisData, PredictionRequestDto request) {
         try {
-            // Формируем промпт для LLM
             String prompt = buildPromptForLLM(analysisData, request);
-            
-            // Получаем ответ от LLM
+
             String llmResponse = localLLMClient.generatePrediction(prompt);
-            
-            // Парсим ответ LLM
+
             return parseLLMResponse(llmResponse, analysisData, request);
             
         } catch (Exception e) {
             log.error("Error generating prediction with LLM: {}", e.getMessage(), e);
-            // Fallback на простой алгоритм
             return generateSimplePrediction(analysisData, request);
         }
     }
-
-    /**
-     * Формирует промпт для локальной LLM
-     */
     private String buildPromptForLLM(CryptoAnalysisDataDto analysisData, PredictionRequestDto request) {
         StringBuilder prompt = new StringBuilder();
         
@@ -173,18 +150,13 @@ public class CryptoPredictionLLMService {
         return prompt.toString();
     }
 
-    /**
-     * Парсит ответ от локальной LLM
-     */
     private PredictionResponseDto parseLLMResponse(String llmResponse, CryptoAnalysisDataDto analysisData, PredictionRequestDto request) {
         try {
-            // Извлекаем JSON из ответа LLM
+
             String jsonPart = extractJsonFromResponse(llmResponse);
-            
-            // Парсим JSON
+
             JsonNode jsonNode = objectMapper.readTree(jsonPart);
-            
-            // Валидируем и ограничиваем значения
+
             BigDecimal predictedPrice = validateAndLimitBigDecimal(
                 new BigDecimal(jsonNode.get("predictedPrice").asText()), 
                 30, 8, "predictedPrice"
@@ -212,30 +184,21 @@ public class CryptoPredictionLLMService {
         } catch (Exception e) {
             log.error("Error parsing LLM response: {}", e.getMessage());
             log.debug("LLM Response: {}", llmResponse);
-            // Fallback на простой алгоритм
             return generateSimplePrediction(analysisData, request);
         }
     }
 
-    /**
-     * Извлекает JSON из ответа LLM
-     */
     private String extractJsonFromResponse(String response) {
-        // Ищем JSON в ответе
         int startIndex = response.indexOf("{");
         int endIndex = response.lastIndexOf("}");
         
         if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
             return response.substring(startIndex, endIndex + 1);
         }
-        
-        // Если JSON не найден, возвращаем весь ответ
+
         return response;
     }
 
-    /**
-     * Генерирует простой прогноз на основе технического анализа
-     */
     private PredictionResponseDto generateSimplePrediction(CryptoAnalysisDataDto analysisData, PredictionRequestDto request) {
         BigDecimal currentPrice = analysisData.getCurrentPrice();
         BigDecimal predictedPrice = currentPrice;
@@ -245,7 +208,6 @@ public class CryptoPredictionLLMService {
         List<String> riskFactors = new ArrayList<>();
         List<String> supportingFactors = new ArrayList<>();
 
-        // Анализ тренда
         if (analysisData.getPriceChange24h() != null) {
             if (analysisData.getPriceChange24h().compareTo(BigDecimal.valueOf(5)) > 0) {
                 marketSentiment = "bullish";
@@ -258,7 +220,6 @@ public class CryptoPredictionLLMService {
             }
         }
 
-        // Анализ RSI
         if (analysisData.getRsi() != null) {
             if (analysisData.getRsi().compareTo(BigDecimal.valueOf(70)) > 0) {
                 riskFactors.add("RSI указывает на перекупленность");
@@ -269,7 +230,6 @@ public class CryptoPredictionLLMService {
             }
         }
 
-        // Анализ скользящих средних
         if (analysisData.getMovingAverage20() != null && analysisData.getMovingAverage50() != null) {
             if (analysisData.getMovingAverage20().compareTo(analysisData.getMovingAverage50()) > 0) {
                 supportingFactors.add("Краткосрочная MA выше долгосрочной");
@@ -280,30 +240,26 @@ public class CryptoPredictionLLMService {
             }
         }
 
-        // Расчет прогнозируемой цены на основе тренда
         BigDecimal trendMultiplier = BigDecimal.ONE;
         if (marketSentiment.equals("bullish")) {
-            trendMultiplier = BigDecimal.valueOf(1.05); // +5%
+            trendMultiplier = BigDecimal.valueOf(1.05);
         } else if (marketSentiment.equals("bearish")) {
-            trendMultiplier = BigDecimal.valueOf(0.95); // -5%
+            trendMultiplier = BigDecimal.valueOf(0.95);
         }
 
-        // Применяем временной фактор
         switch (request.getTimeframe()) {
             case "1h":
-                trendMultiplier = trendMultiplier.add(BigDecimal.valueOf(0.01)); // +1%
+                trendMultiplier = trendMultiplier.add(BigDecimal.valueOf(0.01));
                 break;
             case "24h":
-                // Без изменений
                 break;
             case "7d":
-                trendMultiplier = trendMultiplier.multiply(BigDecimal.valueOf(1.1)); // +10%
+                trendMultiplier = trendMultiplier.multiply(BigDecimal.valueOf(1.1));
                 break;
         }
 
         predictedPrice = currentPrice.multiply(trendMultiplier);
 
-        // Формируем обоснование
         predictionReasoning = String.format(
                 "Прогноз основан на техническом анализе. Текущая цена: %s USD. " +
                 "Анализ тренда показывает %s настроения. " +
@@ -333,15 +289,11 @@ public class CryptoPredictionLLMService {
                 .build();
     }
 
-    /**
-     * Сохраняет прогноз в базу данных
-     */
     private void savePrediction(PredictionResponseDto prediction) {
         try {
             CryptoPrediction entity = new CryptoPrediction();
             entity.setSymbol(prediction.getSymbol());
-            
-            // Валидируем все BigDecimal поля перед сохранением
+
             entity.setCurrentPrice(validateAndLimitBigDecimal(prediction.getCurrentPrice(), 30, 8, "currentPrice"));
             
             BigDecimal predictedPrice = validateAndLimitBigDecimal(prediction.getPredictedPrice(), 30, 8, "predictedPrice");
@@ -365,9 +317,6 @@ public class CryptoPredictionLLMService {
         }
     }
 
-    /**
-     * Создает резервный прогноз в случае ошибки
-     */
     private PredictionResponseDto createFallbackPrediction(PredictionRequestDto request) {
         return PredictionResponseDto.builder()
                 .symbol(request.getSymbol())
@@ -384,16 +333,13 @@ public class CryptoPredictionLLMService {
                 .build();
     }
 
-    // Вспомогательные методы для технического анализа
-
     private String calculateTechnicalIndicators(List<CryptoData> historicalData) {
         if (historicalData.size() < 20) {
             return "Недостаточно данных для технического анализа";
         }
 
         StringBuilder analysis = new StringBuilder();
-        
-        // Анализ тренда
+
         CryptoData latest = historicalData.get(historicalData.size() - 1);
         CryptoData weekAgo = historicalData.get(Math.max(0, historicalData.size() - 7));
         
@@ -403,7 +349,6 @@ public class CryptoPredictionLLMService {
             analysis.append("Нисходящий тренд за неделю. ");
         }
 
-        // Анализ объема
         BigDecimal avgVolume = historicalData.stream()
                 .map(CryptoData::getVolume24h)
                 .filter(Objects::nonNull)
@@ -481,7 +426,6 @@ public class CryptoPredictionLLMService {
     }
 
     private List<String> getRecentNews(String symbol) {
-        // Заглушка - в реальном проекте можно интегрировать с новостными API
         return List.of(
                 "Рыночные настроения остаются неопределенными",
                 "Технические индикаторы показывают смешанные сигналы",
@@ -489,16 +433,10 @@ public class CryptoPredictionLLMService {
         );
     }
 
-    /**
-     * Получает последний прогноз для криптовалюты
-     */
     public Optional<CryptoPrediction> getLatestPrediction(String symbol) {
         return cryptoPredictionRepository.findLatestBySymbol(symbol);
     }
 
-    /**
-     * Получает все прогнозы для криптовалюты
-     */
     public List<CryptoPrediction> getPredictionsHistory(String symbol) {
         return cryptoPredictionRepository.findBySymbolOrderByCreatedAtDesc(symbol);
     }
@@ -514,17 +452,13 @@ public class CryptoPredictionLLMService {
         }
         return result;
     }
-    
-    /**
-     * Валидирует и ограничивает BigDecimal значения в соответствии с точностью DECIMAL полей
-     */
+
     private BigDecimal validateAndLimitBigDecimal(BigDecimal value, int precision, int scale, String fieldName) {
         if (value == null) {
             log.warn("Null value for field: {}", fieldName);
             return BigDecimal.ZERO;
         }
-        
-        // Проверяем, что значение не превышает максимально допустимое для DECIMAL(precision, scale)
+
         BigDecimal maxValue = BigDecimal.TEN.pow(precision - scale).subtract(BigDecimal.ONE);
         BigDecimal minValue = maxValue.negate();
         
@@ -539,8 +473,7 @@ public class CryptoPredictionLLMService {
                     value, fieldName, minValue);
             return minValue;
         }
-        
-        // Округляем до нужного количества знаков после запятой
+
         BigDecimal roundedValue = value.setScale(scale, RoundingMode.HALF_UP);
         
         if (!roundedValue.equals(value)) {

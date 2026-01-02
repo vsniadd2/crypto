@@ -21,7 +21,7 @@ public class ContactController {
 
     @PostMapping
     public CompletableFuture<ResponseEntity<ContactDto>> saveContact(@Valid @RequestBody ContactRequest request) {
-        return contactServiceImpl.saveContactAsync(request)
+        return contactServiceImpl.saveContact(request)
                 .thenApply(ResponseEntity::ok);
     }
 }

@@ -40,7 +40,7 @@ public class FavoriteController {
         return getUserIdFromAuthentication(authentication)
                 .thenCompose(userId -> {
                     log.debug("User ID extracted from authentication: {}", userId);
-                    return favoriteService.addFavoriteAsync(userId, request.coinId());
+                    return favoriteService.addFavorite(userId, request.coinId());
                 })
                 .thenApply(ResponseEntity::ok)
                 .exceptionally(ex -> {
@@ -80,7 +80,6 @@ public class FavoriteController {
         return ResponseEntity.ok(responseDto);
     }
 
-    //todo Убрать ебанный CompletableFuture Отсюда
     private CompletableFuture<Long> getUserIdFromAuthentication(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String email = userDetails.getUsername();

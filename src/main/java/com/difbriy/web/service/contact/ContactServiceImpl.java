@@ -16,13 +16,14 @@ import java.util.concurrent.CompletableFuture;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@Transactional
 public class ContactServiceImpl implements ContactService {
     private final ContactRepository contactRepository;
     private final ContactMapper mapper;
 
+    @Transactional
+    @Async("taskExecutor")
     @Override
-    public ContactDto saveContact(ContactRequest request) {
+    public CompletableFuture<ContactDto> saveContact(ContactRequest request) {
 
         log.info("Start saving contact: {}", request);
 
@@ -30,14 +31,11 @@ public class ContactServiceImpl implements ContactService {
         contactRepository.save(contact);
 
         log.info("Contact saved successfully with id={}", contact.getId());
-        return mapper.toDto(contact);
+        ContactDto response = mapper.toDto(contact);
+
+        return CompletableFuture.completedFuture(response);
     }
 
-    @Async("taskExecutor")
-    @Override
-    public CompletableFuture<ContactDto> saveContactAsync(ContactRequest request) {
-        return CompletableFuture.supplyAsync(() -> saveContact(request));
-    }
 
     @Transactional(readOnly = true)
     @Override

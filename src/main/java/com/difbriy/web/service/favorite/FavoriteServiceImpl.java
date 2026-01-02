@@ -35,8 +35,9 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     @Transactional
+    @Async("taskExecutor")
     @Override
-    public FavoriteDto addFavorite(Long userId, String coinId) {
+    public CompletableFuture<FavoriteDto> addFavorite(Long userId, String coinId) {
         log.debug("Checking if coin exists in favorites. User ID: {}, Coin ID: {}", userId, coinId);
         if (favoriteRepository.existsByUserIdAndCoinId(userId, coinId)) {
             log.warn("Attempt to add coin that is already in favorites. User ID: {}, Coin ID: {}", userId, coinId);
@@ -55,34 +56,10 @@ public class FavoriteServiceImpl implements FavoriteService {
 
         FavoriteDto result = new FavoriteDto(coinId, favorite.getId());
         log.debug("Created DTO for response: coinId={}, id={}", result.coinId(), result.id());
-        return result;
+        return CompletableFuture.completedFuture(result);
     }
-
-    @Async("taskExecutor")
-    @Override
-    public CompletableFuture<FavoriteDto> addFavoriteAsync(Long userId, String coinId) {
-        return CompletableFuture.supplyAsync(() -> addFavorite(userId, coinId));
-    }
-
 
     @Transactional
-    void removeFavoriteInternal(Long userId, String coinId) {
-        log.debug("Checking if coin exists in favorites before deletion. User ID: {}, Coin ID: {}", userId, coinId);
-        if (!favoriteRepository.existsByUserIdAndCoinId(userId, coinId)) {
-            log.warn("Attempt to remove coin that is not in favorites. User ID: {}, Coin ID: {}", userId, coinId);
-            throw new IllegalArgumentException("Coin not found in favorites");
-        }
-
-        log.debug("Removing coin from favorites. User ID: {}, Coin ID: {}", userId, coinId);
-        favoriteRepository.deleteByUserIdAndCoinId(userId, coinId);
-        log.info("Coin successfully removed from favorites. User ID: {}, Coin ID: {}", userId, coinId);
-    }
-
-    @Override
-    public void removeFavorite(Long userId, String coinId) {
-       removeFavoriteInternal(userId, coinId);
-    }
-
     @Async("taskExecutor")
     @Override
     public CompletableFuture<Void> removeFavoriteAsync(Long userId, String coinId) {
@@ -101,4 +78,17 @@ public class FavoriteServiceImpl implements FavoriteService {
         return exists;
 
     }
+
+    private void removeFavoriteInternal(Long userId, String coinId) {
+        log.debug("Checking if coin exists in favorites before deletion. User ID: {}, Coin ID: {}", userId, coinId);
+        if (!favoriteRepository.existsByUserIdAndCoinId(userId, coinId)) {
+            log.warn("Attempt to remove coin that is not in favorites. User ID: {}, Coin ID: {}", userId, coinId);
+            throw new IllegalArgumentException("Coin not found in favorites");
+        }
+
+        log.debug("Removing coin from favorites. User ID: {}, Coin ID: {}", userId, coinId);
+        favoriteRepository.deleteByUserIdAndCoinId(userId, coinId);
+        log.info("Coin successfully removed from favorites. User ID: {}, Coin ID: {}", userId, coinId);
+    }
+
 }
