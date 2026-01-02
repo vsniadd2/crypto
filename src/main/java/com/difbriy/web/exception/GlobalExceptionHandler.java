@@ -1,5 +1,7 @@
 package com.difbriy.web.exception;
 
+import com.difbriy.web.exception.custom.*;
+import com.difbriy.web.exception.custom.ImageProcessingException;
 import com.difbriy.web.exception.dto.*;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -18,10 +20,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import com.difbriy.web.exception.custom.InvalidResetTokenException;
-import com.difbriy.web.exception.custom.AccessDeniedException;
-import com.difbriy.web.exception.custom.AuthenticationEntryPointException;
-import com.difbriy.web.exception.custom.LogoutHandlerException;
 
 import java.util.Map;
 import java.util.Objects;
@@ -195,6 +193,24 @@ public class GlobalExceptionHandler {
                 .body(LogoutHandlerExceptionDto.create(message, e.getClass().toString()));
     }
 
+    @ExceptionHandler(ImageProcessingException.class)
+    public ResponseEntity<?> handlerLogoutHandlerException(ImageProcessingException e) {
+        String message = e.getMessage();
+
+        log.error("Service unavailable due to ImageProcessingException: {}", message);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(LogoutHandlerExceptionDto.create(message, e.getClass().toString()));
+    }
+    @ExceptionHandler(NewsNotFoundException.class)
+    public ResponseEntity<?> handlerLogoutHandlerException(NewsNotFoundException e) {
+        String message = e.getMessage();
+
+        log.error("Service unavailable due to NewsNotFoundException: {}", message);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(NewsNotFoundExceptionDto.create(message, e.getClass().toString()));
+    }
 
     //Обработка BindingResult
 

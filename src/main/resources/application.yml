@@ -83,6 +83,8 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.mail: DEBUG
     com.difbriy.web.service.mail: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
 
 application:
   security:

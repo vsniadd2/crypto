@@ -1,13 +1,16 @@
 package com.difbriy.web.service.news;
 
-import com.difbriy.web.dto.news.NewsDto;
-import com.difbriy.web.dto.news.NewsResponseDto;
+import com.difbriy.web.dto.news.ImageResponse;
+import com.difbriy.web.dto.news.NewsRequest;
+import com.difbriy.web.dto.news.NewsResponse;
+import com.difbriy.web.entity.Image;
 import com.difbriy.web.entity.News;
+import com.difbriy.web.exception.custom.ImageProcessingException;
+import com.difbriy.web.exception.custom.NewsNotFoundException;
+import com.difbriy.web.repository.ImageRepository;
 import com.difbriy.web.repository.NewsRepository;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -17,11 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -29,109 +29,179 @@ import java.util.concurrent.Executor;
 @RequiredArgsConstructor
 @Slf4j
 public class NewsServiceImpl implements NewsService {
-    private static final String UPLOAD_DIR = "uploads/news-images/";
 
+    private final ImageRepository imageRepository;
     private final NewsRepository newsRepository;
     private final Executor executor;
 
+    //todo а также 47 строчку переписать на mapstruct
+
+    @Transactional
     @Async("taskExecutor")
-    @Transactional()
     @Override
-    public CompletableFuture<NewsResponseDto> saveNews(NewsDto newsDto, String imagePath) {
-        var news = News.builder()
-                .title(newsDto.getTitle())
-                .description(newsDto.getDescription())
-                .content(newsDto.getContent())
-                .category(newsDto.getCategory())
-                .author(newsDto.getAuthor())
-                .publishedAt(newsDto.getPublishedAt())
-                .imagePath(imagePath)
+    public CompletableFuture<NewsResponse> saveNews(NewsRequest newsRequest, MultipartFile imageRequest) {
+        log.info("Trying to save new news...");
+        try {
+            News news = News.builder()
+                    .title(newsRequest.title())
+                    .description(newsRequest.description())
+                    .content(newsRequest.content())
+                    .category(newsRequest.category())
+                    .author(newsRequest.author())
+                    .publishedAt(LocalDateTime.now())
+                    .image(null)
+                    .build();
+
+            ImageResponse imageResponse = null;
+            if (imageRequest != null && !imageRequest.isEmpty()) {
+                String uniqueFileName = String.format("%s-%s",
+                        UUID.randomUUID().toString(),
+                        imageRequest.getOriginalFilename());
+
+                Image image = Image.builder()
+                        .contentType(imageRequest.getContentType())
+                        .fileName(uniqueFileName)
+                        .content(imageRequest.getBytes())
+                        .build();
+
+                news.setImage(image);
+
+                imageResponse = ImageResponse.builder()
+                        .contentType(image.getContentType())
+                        .fileName(image.getFileName())
+                        .content(image.getContent())
+                        .build();
+            }
+
+            News savedNews = newsRepository.save(news);
+
+            NewsResponse response = NewsResponse.builder()
+                    .id(savedNews.getId())
+                    .title(savedNews.getTitle())
+                    .description(savedNews.getDescription())
+                    .content(savedNews.getContent())
+                    .category(savedNews.getCategory())
+                    .author(savedNews.getAuthor())
+                    .publishedAt(savedNews.getPublishedAt())
+                    .image(imageResponse)
+                    .build();
+            log.info("News saved successfully!");
+            return CompletableFuture.completedFuture(response);
+        } catch (IOException e) {
+            log.error("Failed to process image for news", e);
+            throw new ImageProcessingException("Image processing failed");
+        }
+    }
+
+    @Override
+    public CompletableFuture<Page<NewsResponse>> getNewsPage(Pageable pageable) {
+        Page<News> news = newsRepository.findAll(pageable);
+
+        Page<NewsResponse> response = news.map(this::convertToResponse);
+        return CompletableFuture.completedFuture(response);
+    }
+
+    @Override
+    public NewsResponse getNewsById(Long id) {
+        News news = newsRepository.findById(id)
+                .orElseThrow(() -> new NewsNotFoundException(String.format("News with id %d not found", id)));
+
+        ImageResponse imageResponse = null;
+        if (news.getImage() != null) {
+            imageResponse = ImageResponse.builder()
+                    .id(news.getImage().getId())
+                    .contentType(news.getImage().getContentType())
+                    .fileName(news.getImage().getFileName())
+                    .content(news.getImage().getContent())
+                    .build();
+        }
+
+        return NewsResponse.builder()
+                .id(news.getId())
+                .title(news.getTitle())
+                .description(news.getDescription())
+                .content(news.getContent())
+                .category(news.getCategory())
+                .author(news.getAuthor())
+                .publishedAt(news.getPublishedAt())
+                .image(imageResponse)
                 .build();
+    }
+
+    @Transactional
+    @Async("taskExecutor")
+    @Override
+    public CompletableFuture<Void> deleteNewsById(Long newsId) {
+        log.info("Deleting news with id: {}", newsId);
+
+        newsRepository.findById(newsId)
+                .orElseThrow(() -> new NewsNotFoundException("News not found with id: " + newsId));
+
+        newsRepository.deleteById(newsId);
+        log.info("News with id {} deleted successfully", newsId);
+
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Transactional
+    @Async("taskExecutor")
+    @Override
+    public CompletableFuture<NewsResponse> updateNews(Long newsId, NewsRequest request, MultipartFile imageRequest) {
+        log.info("Updating news {}", newsId);
+
+        News news = newsRepository.findById(newsId)
+                .orElseThrow(() -> new NewsNotFoundException("News not found: " + newsId));
+
+        news.setTitle(request.title());
+        news.setDescription(request.description());
+        news.setContent(request.content());
+        news.setCategory(request.category());
+        news.setAuthor(request.author());
+
+        if (imageRequest != null && !imageRequest.isEmpty()) {
+            try {
+                Image image = news.getImage();
+                if (image == null) {
+                    image = Image.builder().build();
+                    news.setImage(image);
+                }
+                image.setFileName("uuid-" + imageRequest.getOriginalFilename());
+                image.setContentType(imageRequest.getContentType());
+                image.setContent(imageRequest.getBytes());
+            } catch (IOException e) {
+                log.error("Image update failed for news {}", newsId, e);
+                throw new ImageProcessingException("Failed to process image");
+            }
+        }
 
         News savedNews = newsRepository.save(news);
-        return CompletableFuture.completedFuture(new NewsResponseDto(savedNews));
+        log.info("News {} updated successfully", newsId);
+        return CompletableFuture.completedFuture(NewsResponse.toDto(savedNews));
     }
 
-    @Override
-    public CompletableFuture<NewsResponseDto> saveNewsWithImage(NewsDto newsDto, MultipartFile image) {
-        if (newsDto.getPublishedAt() == null) {
-            newsDto.setPublishedAt(LocalDateTime.now());
+
+
+
+    private NewsResponse convertToResponse(News news) {
+        ImageResponse imageResponse = null;
+        if (news.getImage() != null) {
+            imageResponse = ImageResponse.builder()
+                    .id(news.getImage().getId())
+                    .contentType(news.getImage().getContentType())
+                    .fileName(news.getImage().getFileName())
+                    .content(news.getImage().getContent())
+                    .build();
         }
 
-        return CompletableFuture.supplyAsync(() -> {
-                    try {
-                        return saveImage(image);
-                    } catch (IOException e) {
-                        log.error("Error saving image: {}", e.getMessage(), e);
-                        throw new RuntimeException("Failed to save image: " + e.getMessage(), e);
-                    }
-                }, executor)
-                .thenCompose(imagePath -> saveNews(newsDto, imagePath));
-    }
-
-    @Override
-    public CompletableFuture<NewsResponseDto> saveNewsWithoutImage(NewsDto newsDto) {
-        if (newsDto.getPublishedAt() == null) {
-            newsDto.setPublishedAt(LocalDateTime.now());
-        }
-
-        return saveNews(newsDto, null);
-    }
-
-    private String saveImage(MultipartFile image) throws IOException {
-        if (image == null || image.isEmpty()) {
-            return null;
-        }
-
-        Path uploadPath = Paths.get(UPLOAD_DIR);
-        Files.createDirectories(uploadPath);
-
-        String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
-        Path filePath = uploadPath.resolve(fileName);
-
-        image.transferTo(filePath);
-        log.info("Image saved: {}", filePath);
-
-        return fileName;
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public Resource getImageResource(String filename) throws IOException {
-        Path imagePath = Paths.get(UPLOAD_DIR, filename);
-        Resource resource = new UrlResource(imagePath.toUri());
-
-        if (!resource.exists() || !resource.isReadable()) {
-            log.warn("Image not found or not readable: {}", filename);
-            return null;
-        }
-
-        return resource;
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public String getImageContentType(String filename) throws IOException {
-        Path imagePath = Paths.get(UPLOAD_DIR, filename);
-        String contentType = Files.probeContentType(imagePath);
-        return contentType != null ? contentType : "application/octet-stream";
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public CompletableFuture<Page<NewsResponseDto>> getNewsPage(Pageable pageable) {
-        return CompletableFuture.supplyAsync(() -> {
-            Page<News> newsPage = newsRepository.findAll(pageable);
-            return newsPage.map(NewsResponseDto::new);
-        }, executor);
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public CompletableFuture<NewsResponseDto> getNewsById(Long id) {
-        return CompletableFuture.supplyAsync(() -> {
-            Optional<News> newsOpt = newsRepository.findById(id);
-            return newsOpt.map(NewsResponseDto::new).orElse(null);
-        }, executor);
+        return NewsResponse.builder()
+                .id(news.getId())
+                .title(news.getTitle())
+                .description(news.getDescription())
+                .content(news.getContent())
+                .category(news.getCategory())
+                .author(news.getAuthor())
+                .publishedAt(news.getPublishedAt())
+                .image(imageResponse)
+                .build();
     }
 }

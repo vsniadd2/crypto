@@ -21,7 +21,6 @@ public class ContactServiceImpl implements ContactService {
     private final ContactRepository contactRepository;
     private final ContactMapper mapper;
 
-
     @Override
     public ContactDto saveContact(ContactRequest request) {
 

@@ -19,18 +19,26 @@ public class News {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    @NotBlank(message = "The field must not be empty")
+
+    @Column(name = "title")
     String title;
-    @NotBlank(message = "The field must not be empty")
+
+    @Column(name = "description")
     String description;
-    @Column(columnDefinition = "TEXT")
-    @NotBlank(message = "The field must not be empty")
+
+    @Column(name = "content", columnDefinition = "TEXT")
     String content;
-    @NotBlank(message = "The field must not be empty")
+
+    @Column(name = "category")
     String category;
+
     @NotBlank(message = "The field must not be empty")
     String author;
-    LocalDateTime publishedAt;
-    String imagePath;
 
+    @Column(name = "published_at")
+    LocalDateTime publishedAt;
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "image_id")
+    Image image;
 }

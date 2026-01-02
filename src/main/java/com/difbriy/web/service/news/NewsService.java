@@ -1,8 +1,7 @@
 package com.difbriy.web.service.news;
 
-import com.difbriy.web.dto.news.NewsDto;
-import com.difbriy.web.dto.news.NewsResponseDto;
-import org.springframework.core.io.Resource;
+import com.difbriy.web.dto.news.NewsRequest;
+import com.difbriy.web.dto.news.NewsResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,17 +10,13 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 public interface NewsService {
-    CompletableFuture<NewsResponseDto> saveNews(NewsDto newsDto, String imagePath);
+    CompletableFuture<NewsResponse> saveNews(NewsRequest newsDto, MultipartFile image) throws IOException;
 
-    CompletableFuture<NewsResponseDto> saveNewsWithImage(NewsDto newsDto, MultipartFile image);
+    CompletableFuture<Page<NewsResponse>> getNewsPage(Pageable pageable);
 
-    CompletableFuture<NewsResponseDto> saveNewsWithoutImage(NewsDto newsDto);
+    NewsResponse getNewsById(Long id);
 
-    Resource getImageResource(String filename) throws IOException;
+    CompletableFuture<Void> deleteNewsById(Long newsId);
 
-    String getImageContentType(String filename) throws IOException;
-
-    CompletableFuture<Page<NewsResponseDto>> getNewsPage(Pageable pageable);
-
-    CompletableFuture<NewsResponseDto> getNewsById(Long id);
+    CompletableFuture<NewsResponse> updateNews(Long newsId, NewsRequest request, MultipartFile image);
 }

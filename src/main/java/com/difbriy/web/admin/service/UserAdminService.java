@@ -47,7 +47,7 @@ public class UserAdminService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> {
                     log.warn("User with id {} not found", userId);
-                    return new IllegalArgumentException("User with id " + userId + " not found");
+                    return new IllegalArgumentException("User with id %d not found".formatted(userId));
                 });
 
         if (!user.isActive()) {
