@@ -35,7 +35,6 @@ public class NewsServiceImpl implements NewsService {
     private final Executor executor;
 
     //todo а также 47 строчку переписать на mapstruct
-
     @Transactional
     @Async("taskExecutor")
     @Override

@@ -2,6 +2,7 @@ package com.difbriy.web.auth;
 
 import com.difbriy.web.dto.user.UserDto;
 import com.difbriy.web.entity.User;
+import com.difbriy.web.mapper.UserMapper;
 import com.difbriy.web.repository.UserRepository;
 import com.difbriy.web.service.mail.MailServiceImpl;
 import com.difbriy.web.service.security.CustomUserDetailsService;
@@ -21,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -28,7 +30,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AuthenticationServiceTest {
+class AuthenticationServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
@@ -51,7 +53,7 @@ class AuthenticationServiceTest {
 
     @BeforeEach
     void setUp() {
-        authenticationService = new AuthenticationService(
+        authenticationService = new AuthenticationServiceImpl(
                 userRepository,
                 passwordEncoder,
                 customUserDetailsService,
@@ -64,7 +66,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
-    void register_shouldCreateUserAndReturnTokens() {
+    void register_shouldCreateUserAndReturnTokens() throws ExecutionException, InterruptedException {
         RegistrationRequest request = new RegistrationRequest("johnDoe", "john@example.com", "password123");
         User mappedUser = User.builder().username("johnDoe").email("john@example.com").build();
         User savedUser = User.builder().id(1L).username("johnDoe").email("john@example.com").build();
@@ -77,7 +79,7 @@ class AuthenticationServiceTest {
 
         when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(userRepository.existsByUsername(request.username())).thenReturn(false);
-        when(userMapper.toEntity(request)).thenReturn(mappedUser);
+        when(userMapper.toEntity(request,passwordEncoder)).thenReturn(mappedUser);
         when(userRepository.save(mappedUser)).thenReturn(savedUser);
         when(customUserDetailsService.loadUserByUsername(request.email())).thenReturn(userDetails);
         when(jwtService.generateToken(userDetails)).thenReturn("access-token");
@@ -85,7 +87,7 @@ class AuthenticationServiceTest {
         when(userMapper.toDto(savedUser)).thenReturn(userDto);
         when(mailServiceImpl.sendWelcomeEmailAsync(request.email())).thenReturn(CompletableFuture.completedFuture(null));
 
-        AuthenticationResponse response = authenticationService.register(request);
+        AuthenticationResponse response = authenticationService.registerAsync(request).get();
 
         assertThat(response.accessToken()).isEqualTo("access-token");
         assertThat(response.refreshToken()).isEqualTo("refresh-token");
@@ -101,12 +103,12 @@ class AuthenticationServiceTest {
 
         when(userRepository.existsByEmail(request.email())).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> authenticationService.register(request));
+        assertThrows(IllegalArgumentException.class, () -> authenticationService.registerAsync(request).get());
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void authenticate_shouldReturnTokens() {
+    void authenticate_shouldReturnTokens() throws ExecutionException, InterruptedException {
         AuthenticationRequest request = new AuthenticationRequest("john@example.com", "password123");
         User user = User.builder().id(1L).username("johnDoe").email("john@example.com").build();
         UserDto userDto = UserDto.builder().id(1L).username("johnDoe").email("john@example.com").build();
@@ -123,7 +125,7 @@ class AuthenticationServiceTest {
         when(tokenRepository.findAllValidTokensByUser(user.getId().intValue())).thenReturn(Collections.emptyList());
         when(userMapper.toDto(user)).thenReturn(userDto);
 
-        AuthenticationResponse response = authenticationService.authenticate(request);
+        AuthenticationResponse response = authenticationService.authenticateAsync(request).get();
 
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(tokenRepository, times(2)).save(any(Token.class));
