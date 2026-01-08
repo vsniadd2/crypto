@@ -7,9 +7,7 @@ import com.difbriy.web.repository.UserRepository;
 import com.difbriy.web.service.mail.MailService;
 import com.difbriy.web.service.security.CustomUserDetailsService;
 import com.difbriy.web.service.security.JwtService;
-import com.difbriy.web.token.Token;
 import com.difbriy.web.token.TokenRepository;
-import com.difbriy.web.token.TokenType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -45,10 +43,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         var savedUser = userRepository.save(userMapper.toEntity(request, passwordEncoder));
 
-        UserDetails userDetails = loadUserDetails(request.email());
+        UserDetails userDetails = jwtService.loadUserDetails(request.email());
         var jwtToken = jwtService.generateToken(userDetails);
         var refreshToken = jwtService.generateRefreshToken(userDetails);
-        savedUserToken(savedUser, jwtToken);
+        jwtService.savedUserToken(savedUser, jwtToken);
 
         sendWelcomeEmailAfterCommit(request.email());
 
@@ -68,7 +66,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
 
-        UserDetails userDetails = loadUserDetails(request.email());
+        UserDetails userDetails = jwtService.loadUserDetails(request.email());
         var jwtToken = jwtService.generateToken(userDetails);
         var refreshToken = jwtService.generateRefreshToken(userDetails);
 
@@ -78,9 +76,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                                 .format("User not found with email: %s", request.email()))
                 );
 
-        revokeAllUserToken(user);
-        savedUserToken(user, jwtToken);
-        savedUserRefreshToken(user, refreshToken);
+        jwtService.revokeAllUserToken(user);
+        jwtService.savedUserToken(user, jwtToken);
+        jwtService.savedUserRefreshToken(user, refreshToken);
 
         AuthenticationResponse response = AuthenticationResponse.login(
                 jwtToken,
@@ -110,7 +108,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        UserDetails userDetails = loadUserDetails(email);
+        UserDetails userDetails = jwtService.loadUserDetails(email);
 
         if (!jwtService.isTokenValid(refreshToken, userDetails))
             throw new IllegalArgumentException("Refresh token is not valid");
@@ -122,9 +120,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         String newAccessToken = jwtService.generateToken(userDetails);
         String newRefreshToken = jwtService.generateRefreshToken(userDetails);
-        revokeAllUserToken(user);
-        savedUserToken(user, newAccessToken);
-        savedUserRefreshToken(user, newRefreshToken);
+        jwtService.revokeAllUserToken(user);
+        jwtService.savedUserToken(user, newAccessToken);
+        jwtService.savedUserRefreshToken(user, newRefreshToken);
 
         UserDto userDto = userMapper.toDto(user);
         return AuthenticationResponse.builder()
@@ -140,10 +138,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return CompletableFuture.completedFuture(refreshToken(authHeader));
     }
 
-    private UserDetails loadUserDetails(final String email) {
-        return customUserDetailsService.loadUserByUsername(email);
-    }
-
     private void sendWelcomeEmailAfterCommit(String email) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             runAfterCommit(
@@ -156,41 +150,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         } else {
             mailServiceImpl.sendWelcomeEmailAsync(email);
         }
-    }
-
-    private void revokeAllUserToken(User user) {
-        var validUserTokens = tokenRepository.findAllValidTokensByUser(user.getId().intValue());
-        if (validUserTokens.isEmpty())
-            return;
-
-        validUserTokens.forEach(t -> {
-            t.setExpired(true);
-            t.setRevoked(true);
-        });
-
-        tokenRepository.saveAll(validUserTokens);
-    }
-
-    private void savedUserToken(User user, String jwtToken) {
-        var token = Token.builder()
-                .user(user)
-                .token(jwtToken)
-                .tokenType(TokenType.ACCESS)
-                .expired(false)
-                .revoked(false)
-                .build();
-        tokenRepository.save(token);
-    }
-
-    private void savedUserRefreshToken(User user, String refreshToken) {
-        var token = Token.builder()
-                .user(user)
-                .token(refreshToken)
-                .tokenType(TokenType.REFRESH)
-                .expired(false)
-                .revoked(false)
-                .build();
-        tokenRepository.save(token);
     }
 
     private void validateRegister(RegistrationRequest request) {

@@ -1,9 +1,15 @@
 package com.difbriy.web.service.security;
 
+import com.difbriy.web.entity.User;
+import com.difbriy.web.repository.UserRepository;
+import com.difbriy.web.token.Token;
+import com.difbriy.web.token.TokenRepository;
+import com.difbriy.web.token.TokenType;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,8 +25,12 @@ import java.util.function.Function;
 import java.util.UUID;
 
 @Slf4j
+@RequiredArgsConstructor
 @Component
 public class JwtService {
+    private final TokenRepository tokenRepository;
+    private final UserRepository userRepository;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
@@ -114,6 +124,45 @@ public class JwtService {
         return parser.build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    public void revokeAllUserToken(User user) {
+        var validUserTokens = tokenRepository.findAllValidTokensByUser(user.getId().intValue());
+        if (validUserTokens.isEmpty())
+            return;
+
+        validUserTokens.forEach(t -> {
+            t.setExpired(true);
+            t.setRevoked(true);
+        });
+
+        tokenRepository.saveAll(validUserTokens);
+    }
+
+    public void savedUserToken(User user, String jwtToken) {
+        var token = Token.builder()
+                .user(user)
+                .token(jwtToken)
+                .tokenType(TokenType.ACCESS)
+                .expired(false)
+                .revoked(false)
+                .build();
+        tokenRepository.save(token);
+    }
+
+    public void savedUserRefreshToken(User user, String refreshToken) {
+        var token = Token.builder()
+                .user(user)
+                .token(refreshToken)
+                .tokenType(TokenType.REFRESH)
+                .expired(false)
+                .revoked(false)
+                .build();
+        tokenRepository.save(token);
+    }
+
+    public UserDetails loadUserDetails(final String email) {
+        return customUserDetailsService.loadUserByUsername(email);
     }
 
 }
