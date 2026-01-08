@@ -5,6 +5,7 @@ import java.util.List;
 import com.difbriy.web.handler.CustomAccessDeniedHandler;
 import com.difbriy.web.handler.CustomAuthenticationEntryPoint;
 import com.difbriy.web.handler.CustomLogoutHandler;
+import com.difbriy.web.handler.CustomLogoutSuccessHandler;
 import com.difbriy.web.oauth2.handler.OAuth2AuthenticationSuccessHandler;
 import com.difbriy.web.repository.UserRepository;
 import com.difbriy.web.service.security.JwtService;
@@ -43,6 +44,7 @@ public class SecurityConfiguration {
     private final CustomLogoutHandler customLogoutHandler;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final PasswordEncoder passwordEncoder;
+    private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -75,7 +77,7 @@ public class SecurityConfiguration {
                 .logout(logout -> logout
                         .logoutUrl("/api/v1/auth/logout")
                         .addLogoutHandler(customLogoutHandler)
-                        .logoutSuccessHandler(customLogoutHandler)
+                        .logoutSuccessHandler(customLogoutSuccessHandler)
                 );
 
         return http.build();

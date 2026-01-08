@@ -17,7 +17,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class CustomLogoutHandler implements LogoutHandler, LogoutSuccessHandler {
+public class CustomLogoutHandler implements LogoutHandler{
     private final TokenRepository tokenRepository;
 
     @Override
@@ -40,18 +40,6 @@ public class CustomLogoutHandler implements LogoutHandler, LogoutSuccessHandler 
             }
         } catch (Exception e) {
             throw new LogoutHandlerException("Failed to process logout: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        try {
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.setContentType("application/json");
-            String body = "{\"message\": \"Logout successful\"}";
-            response.getWriter().write(body);
-        } catch (IOException e) {
-            throw new LogoutHandlerException("Failed to write logout success response: " + e.getMessage());
         }
     }
 }
