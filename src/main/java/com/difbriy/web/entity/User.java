@@ -45,7 +45,7 @@ public class User {
     List<Role> roles;
 
     @OneToMany(mappedBy = "user")
-    private List<Token> tokens;
+    List<Token> tokens;
 
     @Column(name = "reset_token")
     String resetToken;
@@ -60,6 +60,9 @@ public class User {
 
     @Column(name = "isActive")
     boolean isActive = true;
+
+    @Column(name = "github_id")
+    String githubId;
 
 }
 

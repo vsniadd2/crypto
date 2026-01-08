@@ -20,5 +20,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByResetToken(String token);
 
+    Optional<User> findByGithubId(String githubId);
+
 
 }

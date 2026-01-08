@@ -22,7 +22,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
@@ -50,10 +50,6 @@ spring:
     max-text-message-size: 65536
     max-binary-message-size: 65536
 
-  security:
-    cors:
-      enabled: true
-
   data:
     redis:
       host: localhost
@@ -74,6 +70,22 @@ spring:
           connectiontimeout: 10000
           timeout: 10000
           writetimeout: 10000
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: Ov23linQ1f0t9CmtdWkn
+            client-secret: c30c2b6dd77c1d8cc83e9668575e850700a5b02d
+            scope: read:user,user:email
+        provider:
+          github:
+            authorization-uri: https://github.com/login/oauth/authorize
+            token-uri: https://github.com/login/oauth/access_token
+            user-info-uri: https://api.github.com/user
+            user-name-attribute: login
+
   aop:
     proxy-target-class: true
 

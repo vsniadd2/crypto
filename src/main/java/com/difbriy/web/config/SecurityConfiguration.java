@@ -5,6 +5,10 @@ import java.util.List;
 import com.difbriy.web.handler.CustomAccessDeniedHandler;
 import com.difbriy.web.handler.CustomAuthenticationEntryPoint;
 import com.difbriy.web.handler.CustomLogoutHandler;
+import com.difbriy.web.oauth2.handler.OAuth2AuthenticationSuccessHandler;
+import com.difbriy.web.repository.UserRepository;
+import com.difbriy.web.service.security.JwtService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -37,6 +41,8 @@ public class SecurityConfiguration {
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomLogoutHandler customLogoutHandler;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final PasswordEncoder passwordEncoder;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -48,8 +54,16 @@ public class SecurityConfiguration {
                         .requestMatchers(WHITE_LIST_URL).permitAll()
                         .requestMatchers(AUTHENTICATED_URL).authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/news").hasRole("ADMIN")
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/api/v1/auth/login")
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(((request, response, exception) -> {
+                            response.sendRedirect("/api/v1/auth/login?error");
+                        }))
+                )
+
                 .exceptionHandling(e -> {
                             e.accessDeniedHandler(accessDeniedHandler);
                             e.authenticationEntryPoint(authenticationEntryPoint);
@@ -92,14 +106,9 @@ public class SecurityConfiguration {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setPasswordEncoder(passwordEncoder());
+        provider.setPasswordEncoder(passwordEncoder);
         provider.setUserDetailsService(customUserDetailsService);
         return provider;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -125,7 +134,6 @@ public class SecurityConfiguration {
             "/api/crypto/symbols",
             "/api/crypto/health",
             "/actuator/**",
-            "/api/currency"
     };
 
     private static final String[] AUTHENTICATED_URL = {
@@ -134,6 +142,7 @@ public class SecurityConfiguration {
             "/api/crypto/test-llm",
             "/api/predictions/**",
             "/api/profile",
-            "/api/v1/favorite/**"
+            "/api/v1/favorite/**",
+            "/api/currency"
     };
 }
