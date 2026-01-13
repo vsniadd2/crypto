@@ -84,7 +84,7 @@ public class FavoriteController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String email = userDetails.getUsername();
 
-        return CompletableFuture.completedFuture(userService.findByEmail(email).orElseThrow().getId());
+        return CompletableFuture.completedFuture(userService.findByEmail(email).orElseThrow.getId());
 
     }
 }

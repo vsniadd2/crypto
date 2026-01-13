@@ -20,11 +20,11 @@ public class MailServiceImpl implements MailService {
 
     @Value("${spring.mail.username}")
     private String fromEmail;
-    private static final String MAIL_SUBJECT_TEXT =
+    private static final String WELCOME_MAIL_SUBJECT_TEXT =
             """
                     Здравствуйте!
                     """;
-    private static final String MAIL_TEXT =
+    private static final String WELCOME_MAIL_TEXT =
             """
                     Благодарим вас за регистрацию в проекте MERO. Мы рады, что вы присоединились к нашему сообществу и стали частью инициативы, которая объединяет людей, стремящихся к развитию и новым возможностям.
                     
@@ -32,6 +32,13 @@ public class MailServiceImpl implements MailService {
                     
                     С уважением, Команда MERO
                     """;
+
+    private static final String RESET_MAIL_SUBJECT = """
+            Password Reset Request
+            """;
+    private static final String RESET_MAIL_TEXT = """
+            Click the link below to reset your password. The link will expire in 15 minutes.
+            """;
 
     @Async("taskExecutor")
     @Override
@@ -41,8 +48,8 @@ public class MailServiceImpl implements MailService {
             SimpleMailMessage mailMessage = new SimpleMailMessage();
             mailMessage.setFrom(fromEmail);
             mailMessage.setTo(to);
-            mailMessage.setSubject(MAIL_SUBJECT_TEXT.trim());
-            mailMessage.setText(MAIL_TEXT);
+            mailMessage.setSubject(WELCOME_MAIL_SUBJECT_TEXT.trim());
+            mailMessage.setText(WELCOME_MAIL_TEXT);
 
             mailSender.send(mailMessage);
             log.info("Welcome email successfully sent to: {}", to);
@@ -54,5 +61,25 @@ public class MailServiceImpl implements MailService {
             log.error("Unexpected error while sending welcome email to {}: {}", to, e.getMessage(), e);
             return CompletableFuture.failedFuture(e);
         }
+    }
+
+    @Override
+    public CompletableFuture<Void> sendPasswordResetEmail(String to, String resetLink) {
+        try {
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
+            mailMessage.setFrom(fromEmail);
+            mailMessage.setTo(to);
+            mailMessage.setSubject(RESET_MAIL_SUBJECT.trim());
+            mailMessage.setText(RESET_MAIL_TEXT);
+            mailSender.send(mailMessage);
+            return CompletableFuture.completedFuture(null);
+        } catch (MailException e) {
+            log.error("Failed to send reset password to {}: {}", to, e.getMessage(), e);
+            return CompletableFuture.failedFuture(e);
+        } catch (Exception e) {
+            log.error("Unexpected error while sending reset password email to {}: {}", to, e.getMessage(), e);
+            return CompletableFuture.failedFuture(e);
+        }
+
     }
 }

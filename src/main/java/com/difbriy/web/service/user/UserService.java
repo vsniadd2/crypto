@@ -1,7 +1,5 @@
 package com.difbriy.web.service.user;
 
-import com.difbriy.web.dto.user.PasswordResetConfirmDto;
-import com.difbriy.web.dto.user.PasswordResetResponseDto;
 import com.difbriy.web.dto.user.ProfileDto;
 import com.difbriy.web.dto.user.UpdatedProfileResponseDto;
 import com.difbriy.web.entity.User;
@@ -14,11 +12,11 @@ public interface UserService {
 
     ProfileDto getProfileByEmail(String email);
 
-    CompletableFuture<PasswordResetResponseDto> generatePasswordResetToken(String email);
-
-    CompletableFuture<PasswordResetResponseDto> resetPassword(PasswordResetConfirmDto confirmDto);
-
     User findByResetToken(String token);
 
     CompletableFuture<UpdatedProfileResponseDto> updateProfile(Long userId, String username, String email);
+
+
+    void createResetToken(String email);
+    void resetPassword(String token, String newPassword);
 }
