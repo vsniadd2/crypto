@@ -18,6 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -48,6 +49,8 @@ class AuthenticationServiceImplTest {
     private TokenRepository tokenRepository;
     @Mock
     private MailServiceImpl mailServiceImpl;
+    @Mock
+    private TransactionTemplate transactionTemplate;
 
     private AuthenticationService authenticationService;
 
@@ -61,7 +64,8 @@ class AuthenticationServiceImplTest {
                 jwtService,
                 userMapper,
                 tokenRepository,
-                mailServiceImpl
+                mailServiceImpl,
+                transactionTemplate
         );
     }
 
@@ -79,7 +83,7 @@ class AuthenticationServiceImplTest {
 
         when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(userRepository.existsByUsername(request.username())).thenReturn(false);
-        when(userMapper.toEntity(request,passwordEncoder)).thenReturn(mappedUser);
+        when(userMapper.toEntity(request, passwordEncoder)).thenReturn(mappedUser);
         when(userRepository.save(mappedUser)).thenReturn(savedUser);
         when(customUserDetailsService.loadUserByUsername(request.email())).thenReturn(userDetails);
         when(jwtService.generateToken(userDetails)).thenReturn("access-token");
