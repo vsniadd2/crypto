@@ -8,7 +8,9 @@ import com.difbriy.web.service.mail.MailService;
 import com.difbriy.web.service.security.CustomUserDetailsService;
 import com.difbriy.web.service.security.JwtService;
 import com.difbriy.web.token.TokenRepository;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,19 +29,21 @@ import java.util.concurrent.CompletionException;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final CustomUserDetailsService customUserDetailsService;
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
-    private final UserMapper userMapper;
-    private final TokenRepository tokenRepository;
-    private final MailService mailServiceImpl;
-    private final TransactionTemplate transactionTemplate;
+    UserRepository userRepository;
+    PasswordEncoder passwordEncoder;
+    CustomUserDetailsService customUserDetailsService;
+    AuthenticationManager authenticationManager;
+    JwtService jwtService;
+    UserMapper userMapper;
+    TokenRepository tokenRepository;
+    MailService mailServiceImpl;
+    TransactionTemplate transactionTemplate;
 
     @Async("taskExecutor")
+    @Override
     public CompletableFuture<AuthenticationResponse> registerAsync(RegistrationRequest request) {
         return CompletableFuture.supplyAsync(() ->
                 transactionTemplate.execute(status -> {
@@ -61,7 +65,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         return resp;
                     } catch (Exception e) {
                         status.setRollbackOnly();
-                        throw e;
+                        throw new RuntimeException(e);
                     }
                 })
         ).whenComplete((resp, ex) -> {
@@ -75,41 +79,42 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 
     @Async("taskExecutor")
+    @Override
     public CompletableFuture<AuthenticationResponse> authenticateAsync(AuthenticationRequest request) {
         return CompletableFuture.supplyAsync(() ->
-                        transactionTemplate.execute(status -> {
-                            try {
-                                authenticationManager.authenticate(
-                                        new UsernamePasswordAuthenticationToken(request.email(), request.password())
-                                );
+                transactionTemplate.execute(status -> {
+                    try {
+                        authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(request.email(), request.password())
+                        );
 
-                                UserDetails userDetails = jwtService.loadUserDetails(request.email());
+                        UserDetails userDetails = jwtService.loadUserDetails(request.email());
 
-                                String jwtToken = jwtService.generateToken(userDetails);
-                                String refreshToken = jwtService.generateRefreshToken(userDetails);
+                        String jwtToken = jwtService.generateToken(userDetails);
+                        String refreshToken = jwtService.generateRefreshToken(userDetails);
 
-                                User user = userRepository.findByEmail(request.email())
-                                        .orElseThrow(() -> new UsernameNotFoundException(
-                                                String.format("User not found with email: %s", request.email())
-                                        ));
+                        User user = userRepository.findByEmail(request.email())
+                                .orElseThrow(() -> new UsernameNotFoundException(
+                                        String.format("User not found with email: %s", request.email())
+                                ));
 
-                                jwtService.revokeAllUserToken(user);
-                                jwtService.savedUserToken(user, jwtToken);
-                                jwtService.savedUserRefreshToken(user, refreshToken);
+                        jwtService.revokeAllUserToken(user);
+                        jwtService.savedUserToken(user, jwtToken);
+                        jwtService.savedUserRefreshToken(user, refreshToken);
 
-                                AuthenticationResponse response = AuthenticationResponse.login(
-                                        jwtToken,
-                                        refreshToken,
-                                        userMapper.toDto(user)
-                                );
+                        AuthenticationResponse response = AuthenticationResponse.login(
+                                jwtToken,
+                                refreshToken,
+                                userMapper.toDto(user)
+                        );
 
 
-                                return response;
-                            } catch (Exception e) {
-                                status.setRollbackOnly();
-                                throw e;
-                            }
-                        })
+                        return response;
+                    } catch (Exception e) {
+                        status.setRollbackOnly();
+                        throw e;
+                    }
+                })
         ).exceptionally(ex -> {
             log.error("Async authentication failed for email: {}", request.email(), ex);
             throw new CompletionException(ex);
@@ -117,6 +122,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Transactional
+    @Override
     public AuthenticationResponse refreshToken(String authHeader) {
         validateRefreshToken(authHeader);
         log.info("Refreshing token...");
@@ -161,6 +167,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Async("taskExecutor")
+    @Override
     public CompletableFuture<AuthenticationResponse> refreshTokenAsync(String authHeader) {
         return CompletableFuture.completedFuture(refreshToken(authHeader));
     }

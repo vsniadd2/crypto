@@ -5,35 +5,46 @@ import com.difbriy.web.dto.contact.ContactRequest;
 import com.difbriy.web.entity.Contact;
 import com.difbriy.web.mapper.ContactMapper;
 import com.difbriy.web.repository.ContactRepository;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ContactServiceImpl implements ContactService {
-    private final ContactRepository contactRepository;
-    private final ContactMapper mapper;
+    ContactRepository contactRepository;
+    ContactMapper mapper;
+    TransactionTemplate transactionTemplate;
 
-    @Transactional
     @Async("taskExecutor")
     @Override
     public CompletableFuture<ContactDto> saveContact(ContactRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            return transactionTemplate.execute(status -> {
+                try {
+                    log.info("Start saving contact: {}", request);
 
-        log.info("Start saving contact: {}", request);
+                    Contact contact = mapper.toEntity(request);
+                    Contact savedContact = contactRepository.save(contact);
 
-        Contact contact = mapper.toEntity(request);
-        contactRepository.save(contact);
-
-        log.info("Contact saved successfully with id={}", contact.getId());
-        ContactDto response = mapper.toDto(contact);
-
-        return CompletableFuture.completedFuture(response);
+                    log.info("Contact saved successfully with id={}", savedContact.getId());
+                    return mapper.toDto(savedContact);
+                } catch (Exception e) {
+                    log.error("Error while saving contact: {}", request, e);
+                    status.setRollbackOnly();
+                    throw new RuntimeException("Failed to save contact", e);
+                }
+            });
+        });
     }
 
 

@@ -3,21 +3,29 @@ package com.difbriy.web.service.favorite;
 import com.difbriy.web.dto.favorite.FavoriteDto;
 import com.difbriy.web.entity.Favorite;
 import com.difbriy.web.repository.FavoriteRepository;
+import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.thymeleaf.util.Validate;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FavoriteServiceImpl implements FavoriteService {
-    private final FavoriteRepository favoriteRepository;
+    FavoriteRepository favoriteRepository;
+    TransactionTemplate transactionTemplate;
 
     @Transactional(readOnly = true)
     @Override
@@ -34,29 +42,37 @@ public class FavoriteServiceImpl implements FavoriteService {
         return result;
     }
 
-    @Transactional
     @Async("taskExecutor")
     @Override
     public CompletableFuture<FavoriteDto> addFavorite(Long userId, String coinId) {
-        log.debug("Checking if coin exists in favorites. User ID: {}, Coin ID: {}", userId, coinId);
-        if (favoriteRepository.existsByUserIdAndCoinId(userId, coinId)) {
-            log.warn("Attempt to add coin that is already in favorites. User ID: {}, Coin ID: {}", userId, coinId);
-            throw new IllegalArgumentException("The coin has already been added to your favorites.");
-        }
+        return CompletableFuture.supplyAsync(() -> {
+            return transactionTemplate.execute(status -> {
+                try {
+                    log.debug("Checking if coin exists in favorites. User ID: {}, Coin ID: {}", userId, coinId);
+                    if (favoriteRepository.existsByUserIdAndCoinId(userId, coinId)) {
+                        log.warn("Attempt to add coin that is already in favorites. User ID: {}, Coin ID: {}", userId, coinId);
+                        throw new IllegalArgumentException("The coin has already been added to your favorites.");
+                    }
 
-        log.debug("Creating new favorite record. User ID: {}, Coin ID: {}", userId, coinId);
-        Favorite favorite = Favorite.builder()
-                .userId(userId)
-                .coinId(coinId)
-                .build();
+                    log.debug("Creating new favorite record. User ID: {}, Coin ID: {}", userId, coinId);
+                    Favorite favorite = Favorite.builder()
+                            .userId(userId)
+                            .coinId(coinId)
+                            .build();
 
-        favoriteRepository.save(favorite);
-        log.info("Coin successfully saved to favorites. User ID: {}, Coin ID: {}, Favorite ID: {}",
-                userId, coinId, favorite.getId());
+                    favoriteRepository.save(favorite);
+                    log.info("Coin successfully saved to favorites. User ID: {}, Coin ID: {}, Favorite ID: {}",
+                            userId, coinId, favorite.getId());
 
-        FavoriteDto result = new FavoriteDto(coinId, favorite.getId());
-        log.debug("Created DTO for response: coinId={}, id={}", result.coinId(), result.id());
-        return CompletableFuture.completedFuture(result);
+                    FavoriteDto result = new FavoriteDto(coinId, favorite.getId());
+                    log.debug("Created DTO for response: coinId={}, id={}", result.coinId(), result.id());
+                    return result;
+                } catch (Exception ex) {
+                    log.error(ex.getMessage(), ex);
+                    throw new RuntimeException(ex);
+                }
+            });
+        });
     }
 
     @Transactional
