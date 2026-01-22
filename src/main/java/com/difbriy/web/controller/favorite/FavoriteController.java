@@ -7,8 +7,11 @@ import com.difbriy.web.entity.User;
 import com.difbriy.web.service.favorite.FavoriteService;
 import com.difbriy.web.service.user.UserService;
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,13 +21,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/favorite")
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@Slf4j
 public class FavoriteController {
-    private final FavoriteService favoriteService;
-    private final UserService userService;
+    FavoriteService favoriteService;
+    UserService userService;
 
     @GetMapping
     public ResponseEntity<List<FavoriteDto>> getUserFavoritesCoins(Authentication authentication) {

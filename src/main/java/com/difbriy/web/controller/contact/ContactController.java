@@ -4,7 +4,9 @@ import com.difbriy.web.dto.contact.ContactDto;
 import com.difbriy.web.dto.contact.ContactRequest;
 import com.difbriy.web.service.contact.ContactService;
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,9 +17,10 @@ import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/api/v1/contacts")
 public class ContactController {
-    private final ContactService contactServiceImpl;
+    ContactService contactServiceImpl;
 
     @PostMapping
     public CompletableFuture<ResponseEntity<ContactDto>> saveContact(@Valid @RequestBody ContactRequest request) {

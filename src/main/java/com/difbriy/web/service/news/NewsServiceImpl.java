@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -177,10 +178,7 @@ public class NewsServiceImpl implements NewsService {
         log.info("News {} updated successfully", newsId);
         return CompletableFuture.completedFuture(NewsResponse.toDto(savedNews));
     }
-
-
-
-
+    
     private NewsResponse convertToResponse(News news) {
         ImageResponse imageResponse = null;
         if (news.getImage() != null) {

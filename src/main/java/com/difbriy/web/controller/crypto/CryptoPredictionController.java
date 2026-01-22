@@ -4,7 +4,9 @@ import com.difbriy.web.dto.crypto.PredictionRequestDto;
 import com.difbriy.web.dto.crypto.PredictionResponseDto;
 import com.difbriy.web.entity.CryptoPrediction;
 import com.difbriy.web.locallm.service.CryptoPredictionLLMService;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,18 +17,19 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/predictions")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class CryptoPredictionController {
 
-    private final CryptoPredictionLLMService cryptoPredictionService;
+    CryptoPredictionLLMService cryptoPredictionService;
 
     @PostMapping("/generate")
     public ResponseEntity<PredictionResponseDto> generatePrediction(@RequestBody PredictionRequestDto request) {
         try {
             log.info("Received prediction request for {} with timeframe {}", request.getSymbol(), request.getTimeframe());
-            
+
             PredictionResponseDto prediction = cryptoPredictionService.generatePrediction(request);
-            
+
             return ResponseEntity.ok(prediction);
         } catch (Exception e) {
             log.error("Error generating prediction: {}", e.getMessage(), e);
@@ -38,7 +41,7 @@ public class CryptoPredictionController {
     public ResponseEntity<CryptoPrediction> getLatestPrediction(@PathVariable String symbol) {
         try {
             Optional<CryptoPrediction> prediction = cryptoPredictionService.getLatestPrediction(symbol);
-            
+
             return prediction.map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
         } catch (Exception e) {
@@ -51,7 +54,7 @@ public class CryptoPredictionController {
     public ResponseEntity<List<CryptoPrediction>> getPredictionHistory(@PathVariable String symbol) {
         try {
             List<CryptoPrediction> predictions = cryptoPredictionService.getPredictionsHistory(symbol);
-            
+
             return ResponseEntity.ok(predictions);
         } catch (Exception e) {
             log.error("Error getting prediction history for {}: {}", symbol, e.getMessage(), e);
@@ -73,7 +76,7 @@ public class CryptoPredictionController {
                     .build();
 
             PredictionResponseDto prediction = cryptoPredictionService.generatePrediction(request);
-            
+
             return ResponseEntity.ok(prediction);
         } catch (Exception e) {
             log.error("Error getting quick prediction for {}: {}", symbol, e.getMessage(), e);

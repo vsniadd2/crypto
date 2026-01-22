@@ -4,6 +4,8 @@ import com.difbriy.web.dto.user.ProfileDto;
 import com.difbriy.web.dto.user.UpdateProfileRequestDto;
 import com.difbriy.web.dto.user.UpdatedProfileResponseDto;
 import com.difbriy.web.service.user.UserService;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,11 +26,12 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/api/profile")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class ProfileController {
-    private final UserService userService;
-    private final CustomUserDetailsService customUserDetailsService;
-    private final JwtService jwtService;
+    UserService userService;
+    CustomUserDetailsService customUserDetailsService;
+    JwtService jwtService;
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping

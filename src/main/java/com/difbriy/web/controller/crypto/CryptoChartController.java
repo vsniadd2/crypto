@@ -3,7 +3,9 @@ package com.difbriy.web.controller.crypto;
 import com.difbriy.web.dto.crypto.CryptoChartData;
 import com.difbriy.web.entity.CryptoData;
 import com.difbriy.web.service.crypto.CryptoService;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -19,20 +21,21 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/crypto/chart")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class CryptoChartController {
-    
-    private final CryptoService cryptoService;
-    private final SimpMessagingTemplate messagingTemplate;
+
+    CryptoService cryptoService;
+    SimpMessagingTemplate messagingTemplate;
 
     @GetMapping("/{symbol}")
     public ResponseEntity<CryptoChartData> getCryptoChartData(
             @PathVariable String symbol,
             @RequestParam(defaultValue = "7d") String period) {
-        
+
         try {
             List<CryptoData> historyData = cryptoService.getCryptoHistory(symbol, period);
-            
+
             if (historyData.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
@@ -52,7 +55,7 @@ public class CryptoChartController {
             chartData.setSymbol(symbol);
             chartData.setName(latestData != null ? latestData.getName() : symbol);
             chartData.setData(chartPoints);
-            
+
             if (latestData != null) {
                 chartData.setCurrentPrice(latestData.getPrice());
                 chartData.setPriceChange24h(latestData.getPercentChange24h());
@@ -63,7 +66,7 @@ public class CryptoChartController {
             }
 
             return ResponseEntity.ok(chartData);
-            
+
         } catch (Exception e) {
             log.error("Error getting chart data for symbol: {}", symbol, e);
             return ResponseEntity.internalServerError().build();
@@ -105,6 +108,7 @@ public class CryptoChartController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
     @PostMapping("/update")
     public ResponseEntity<String> triggerChartUpdate(@RequestParam String symbol) {
         try {
@@ -165,9 +169,9 @@ public class CryptoChartController {
             stats.put("dataPoints24h", last24h.size());
             stats.put("dataPoints7d", last7d.size());
             stats.put("lastUpdated", latestData.getTimestamp());
-            
+
             return ResponseEntity.ok(stats);
-            
+
         } catch (Exception e) {
             log.error("Error getting crypto stats for symbol: {}", symbol, e);
             return ResponseEntity.internalServerError().build();
