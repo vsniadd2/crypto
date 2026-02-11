@@ -1,5 +1,6 @@
 package com.difbriy.web.auth;
 
+import com.difbriy.web.dto.event.UserRegisteredEvent;
 import com.difbriy.web.dto.user.UserDto;
 import com.difbriy.web.entity.User;
 import com.difbriy.web.mapper.UserMapper;
@@ -12,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,42 +41,32 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     JwtService jwtService;
     UserMapper userMapper;
     TokenRepository tokenRepository;
-    MailService mailServiceImpl;
+
     TransactionTemplate transactionTemplate;
+    ApplicationEventPublisher applicationEventPublisher;
 
     @Async("taskExecutor")
     @Override
     public CompletableFuture<AuthenticationResponse> registerAsync(RegistrationRequest request) {
         return CompletableFuture.supplyAsync(() ->
                 transactionTemplate.execute(status -> {
-                    try {
-                        validateRegister(request);
+                    validateRegister(request);
 
-                        User user = userMapper.toEntity(request, passwordEncoder);
-                        user = userRepository.save(user);
+                    User user = userMapper.toEntity(request, passwordEncoder);
+                    user = userRepository.save(user);
 
-                        UserDetails details = jwtService.loadUserDetails(request.email());
-                        String access = jwtService.generateToken(details);
-                        String refresh = jwtService.generateRefreshToken(details);
-                        jwtService.savedUserToken(user, access);
+                    UserDetails details = jwtService.loadUserDetails(request.email());
+                    String access = jwtService.generateToken(details);
+                    String refresh = jwtService.generateRefreshToken(details);
+                    jwtService.savedUserToken(user, access);
 
-                        AuthenticationResponse resp = AuthenticationResponse.registration(
-                                access, refresh, userMapper.toDto(user)
-                        );
+                    applicationEventPublisher.publishEvent(new UserRegisteredEvent(user.getEmail()));
 
-                        return resp;
-                    } catch (Exception e) {
-                        status.setRollbackOnly();
-                        throw new RuntimeException(e);
-                    }
+                    return AuthenticationResponse.registration(
+                            access, refresh, userMapper.toDto(user)
+                    );
                 })
-        ).whenComplete((resp, ex) -> {
-            if (ex == null && resp != null) {
-                sendWelcomeEmailAfterCommit(request.email());
-            } else {
-                log.warn("Registration succeeded but email not sent due to exception: {}", ex);
-            }
-        });
+        );
     }
 
 
@@ -121,55 +113,43 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         });
     }
 
-    @Transactional
-    @Override
-    public AuthenticationResponse refreshToken(String authHeader) {
-        validateRefreshToken(authHeader);
-        log.info("Refreshing token...");
-
-        String refreshToken = authHeader.substring(7);
-        String email = jwtService.getUsername(refreshToken);
-
-        if (email == null || email.isEmpty())
-            throw new IllegalArgumentException("Invalid refresh token");
-
-        String tokenType = jwtService.extractClaim(refreshToken, claims -> claims.get("typ", String.class));
-        if (!"refresh_token".equals(tokenType)) {
-            throw new IllegalArgumentException("Invalid token type for refresh");
-        }
-
-        var user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        UserDetails userDetails = jwtService.loadUserDetails(email);
-
-        if (!jwtService.isTokenValid(refreshToken, userDetails))
-            throw new IllegalArgumentException("Refresh token is not valid");
-
-        var storedRefreshToken = tokenRepository.findByToken(refreshToken);
-        if (storedRefreshToken.isEmpty() || storedRefreshToken.get().isExpired() || storedRefreshToken.get().isRevoked()) {
-            throw new IllegalArgumentException("Refresh token is not valid or has been revoked");
-        }
-
-        String newAccessToken = jwtService.generateToken(userDetails);
-        String newRefreshToken = jwtService.generateRefreshToken(userDetails);
-        jwtService.revokeAllUserToken(user);
-        jwtService.savedUserToken(user, newAccessToken);
-        jwtService.savedUserRefreshToken(user, newRefreshToken);
-
-        UserDto userDto = userMapper.toDto(user);
-        return AuthenticationResponse.builder()
-                .accessToken(newAccessToken)
-                .refreshToken(newRefreshToken)
-                .success(true)
-                .user(userDto)
-                .build();
-    }
-
     @Async("taskExecutor")
     @Override
     public CompletableFuture<AuthenticationResponse> refreshTokenAsync(String authHeader) {
-        return CompletableFuture.completedFuture(refreshToken(authHeader));
+        return CompletableFuture.supplyAsync(() -> {
+            validateRefreshToken(authHeader);
+            String refreshToken = authHeader.substring(7);
+            String email = jwtService.getUsername(refreshToken);
+
+            if (email == null || email.isEmpty())
+                throw new IllegalArgumentException("Invalid refresh token");
+
+
+            return transactionTemplate.execute(status -> {
+                var user = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+                UserDetails userDetails = jwtService.loadUserDetails(email);
+
+                var storedToken = tokenRepository.findByToken(refreshToken)
+                        .filter(t -> !t.isExpired() && !t.isRevoked())
+                        .orElseThrow(() -> new IllegalArgumentException("Token revoked or expired"));
+
+                String newAccess = jwtService.generateToken(userDetails);
+                String newRefresh = jwtService.generateRefreshToken(userDetails);
+
+                jwtService.revokeAllUserToken(user);
+                jwtService.savedUserToken(user, newAccess);
+                jwtService.savedUserRefreshToken(user, newRefresh);
+
+                return AuthenticationResponse.builder()
+                        .accessToken(newAccess)
+                        .refreshToken(newRefresh)
+                        .success(true)
+                        .user(userMapper.toDto(user))
+                        .build();
+            });
+        });
     }
 
     private void validateRegister(RegistrationRequest request) {
@@ -186,27 +166,5 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new IllegalArgumentException("Missing or invalid Authorization header");
     }
 
-    private void sendWelcomeEmailAfterCommit(String email) {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            runAfterCommit(
-                    () -> mailServiceImpl.sendWelcomeEmailAsync(email)
-                            .exceptionally(ex -> {
-                                log.error("Async email sending failed for {}", email, ex);
-                                return null;
-                            })
-            );
-        } else {
-            mailServiceImpl.sendWelcomeEmailAsync(email);
-        }
-    }
-
-    private void runAfterCommit(Runnable runnable) {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                runnable.run();
-            }
-        });
-    }
 }
 

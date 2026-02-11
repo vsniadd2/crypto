@@ -70,7 +70,6 @@ public class ContactServiceImpl implements ContactService {
     @Override
     public ContactDto getContactById(Long id) {
         log.info("Fetching contact by id={}", id);
-
         Contact contact = contactRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Contact not found with id={}", id);

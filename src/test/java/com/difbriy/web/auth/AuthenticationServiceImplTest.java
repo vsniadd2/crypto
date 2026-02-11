@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -51,8 +52,10 @@ class AuthenticationServiceImplTest {
     private MailServiceImpl mailServiceImpl;
     @Mock
     private TransactionTemplate transactionTemplate;
-
+    @Mock
     private AuthenticationService authenticationService;
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @BeforeEach
     void setUp() {
@@ -64,8 +67,8 @@ class AuthenticationServiceImplTest {
                 jwtService,
                 userMapper,
                 tokenRepository,
-                mailServiceImpl,
-                transactionTemplate
+                transactionTemplate,
+                applicationEventPublisher
         );
     }
 
